@@ -1,8 +1,5 @@
 /*
- * histoUtil.h
- *
- *  Created on: Mar 19, 2015
- *      Author: kaya
+ * utilities related to TH1 objects.
  */
 
 #ifndef HISTOUTIL_H_
