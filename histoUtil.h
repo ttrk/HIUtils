@@ -7,6 +7,7 @@
 
 
 //#include <TCut.h>               // compiling macros give error if this is not included.
+#include <TGraph.h>
 
 void     mergeCuts(TCut cut, TCut* cuts, int len);
 void     mergeCuts(TCut cut, TCut* cuts);
@@ -18,11 +19,14 @@ TList*   getListOfSOMEKeys(TDirectoryFile* dir, const char* pattern);
 TList*   getListOfSOMEKeys(TDirectoryFile* dir, const char* pattern, const char* type);
 TList*   getListOfALLKeys (TDirectoryFile* dir);
 TList*   getListOfALLKeys (TDirectoryFile* dir, const char* type);
+TList*   getListOfALLKeys (TDirectoryFile* dir, const char* type, bool inheritsFrom);
 TList*   getListOfHistograms   (TDirectoryFile* dir, const char* pattern="");
 TList*   getListOfALLHistograms(TDirectoryFile* dir);
 void     saveAllHistogramsToFile(const char* fileName, TList* histos);
 void     saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType="gif", const char* directoryToBeSavedIn="", int styleIndex=0, int rebin=1);
-void     saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType="gif", int dirType=0                        , int styleIndex=0, int rebin=1);
+void     saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType="gif", int dirType=0                      , int styleIndex=0, int rebin=1);
+void     saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType="gif", const char* directoryToBeSavedIn="", int styleIndex=0);
+void     saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType="gif", int dirType=0                      , int styleIndex=0);
 void     saveAllCanvasesToPicture(TList* canvases      , const char* fileType="gif", const char* directoryToBeSavedIn="");
 //void     saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType="gif");     // this line gives error if I use default value option (here const char* fileType="gif") in the function definition.
 
@@ -281,6 +285,44 @@ TList* getListOfALLKeys(TDirectoryFile* dir, const char* type)
 }
 
 /*
+ * get list of all keys under a directory "dir" for objects of a given "type"
+ *
+ * if inheritsFrom is true,  then get list of keys for objects that inherit from   "type"
+ * if inheritsFrom is false, then get list of keys for objects that are exactly of "type"
+ */
+TList* getListOfALLKeys(TDirectoryFile* dir, const char* type, bool inheritsFrom)
+{
+    if(!inheritsFrom)
+        return getListOfALLKeys(dir, type);
+
+    TList* keysInDir = dir->GetListOfKeys();
+    TIter* iter = new TIter(keysInDir);
+
+    TDirectoryFile *subdir;
+    TKey*  key;
+    TList* keysOfType=new TList();
+    TList *newKeys=new TList();
+
+    while ((key=(TKey*)iter->Next())) {
+
+        if(key->ReadObj()->InheritsFrom(type))
+        {
+            keysOfType->Add(key);
+        }
+
+        // traverse directories in a DFS manner (recursively)
+        if(key->IsFolder())
+        {
+            subdir=(TDirectoryFile*)key->ReadObj();
+            newKeys=getListOfALLKeys(subdir, type);
+            keysOfType->AddAll(newKeys);
+        }
+    }
+
+    return keysOfType;
+}
+
+/*
  * get list of histograms under a directory "dir" for objects of a given "type"
  * the name of the histograms should contain the pattern
  */
@@ -333,19 +375,19 @@ void saveAllHistogramsToFile(const char* fileName, TList* histos)
 }
 
 /*
- * save recursively all the histograms inside a TDirectoryFile "dir" to images
+ * save recursively all the TH1 histograms inside a TDirectoryFile "dir" to images
  */
 void saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType /* ="gif" */, const char* directoryToBeSavedIn /* ="" */, int styleIndex /* =0 */, int rebin /* =1 */)
 {
-    TList* keysHisto = getListOfALLKeys(dir, "TH1D");
+    TList* keysHisto = getListOfALLKeys(dir, "TH1", true);  // all histograms that inherit from "TH1" will be saved to picture.
 
-    TH1D*  h;
+    TH1*  h;
     TKey*  key;
     TIter* iter = new TIter(keysHisto);
     TCanvas* c1=new TCanvas();
     while ((key=(TKey*)iter->Next()))
     {
-        h = (TH1D*)key->ReadObj();
+        h = (TH1*)key->ReadObj();
 
         if(rebin!=1)
         {
@@ -359,6 +401,10 @@ void saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType /* ="g
         else
         {
             h->Draw();
+            if(h->InheritsFrom("TH2"))
+            {
+                h->Draw("COLZ");    // default plot style for TH2 histograms
+            }
         }
 
         if(strcmp(directoryToBeSavedIn, "") == 0)   // save in the current directory if no directory is specified
@@ -374,7 +420,7 @@ void saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType /* ="g
 }
 
 /*
- *  function to save histogram pictures into directories that are mostly likely to be preferred.
+ *  function to save TH1 histogram pictures into directories that are mostly likely to be preferred.
  *
  *  absolute path of the macro calling this method = /path/to/macro/myMacro.C
  *  absolute path of the TDirectoryFile = /path/to/file/myFile.root
@@ -419,6 +465,90 @@ void saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType /* ="g
     }
 
     saveAllHistogramsToPicture(dir,fileType,directoryToBeSavedIn, styleIndex, rebin);
+}
+
+/*
+ * save recursively all the graphs inside a TDirectoryFile "dir" to images
+ */
+void saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType /* ="gif" */, const char* directoryToBeSavedIn /* ="" */, int styleIndex /* =0 */)
+{
+    TList* keysGraph = getListOfALLKeys(dir, "TGraph", true); // all graphs that inherit from "TGraph" will be saved to picture.
+
+    TGraph* graph;
+    TKey*  key;
+    TIter* iter = new TIter(keysGraph);
+    TCanvas* c1=new TCanvas();
+    while ((key=(TKey*)iter->Next()))
+    {
+        graph = (TGraph*)key->ReadObj();
+
+        if(styleIndex==1)
+        {
+            graph->Draw();
+        }
+        else
+        {
+            graph->Draw("a p");
+        }
+
+        if(strcmp(directoryToBeSavedIn, "") == 0)   // save in the current directory if no directory is specified
+        {
+            c1->SaveAs(Form("%s.%s" ,graph->GetName(), fileType));  // name of the file is the name of the histogram
+        }
+        else
+        {
+            c1->SaveAs(Form("%s/%s.%s", directoryToBeSavedIn ,graph->GetName(), fileType));
+        }
+    }
+    c1->Close();
+}
+
+/*
+ *  function to save TGraph pictures into directories that are mostly likely to be preferred.
+ *
+ *  absolute path of the macro calling this method = /path/to/macro/myMacro.C
+ *  absolute path of the TDirectoryFile = /path/to/file/myFile.root
+ *
+ *  dirType = 0 (default option) --> save files under   /path/to/macro/
+ *  dirType = 1                  --> save files under   /path/to/macro/myFile
+ *  dirType = 2                  --> save files under   /path/to/file/
+ *  dirType = 3                  --> save files under   /path/to/file/myFile
+ *
+ * */
+void saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType /* ="gif" */, int dirType /* =0 */, int styleIndex /* =0 */)
+{
+    const char* directoryToBeSavedIn="";
+
+    if(dirType==0)
+    {
+        directoryToBeSavedIn="";
+    }
+    else if(dirType==1)
+    {
+          TSystem* sys=new TSystem();
+          const char* baseName=sys->BaseName(dir->GetName());   //    const char* baseName=basename(f->GetName());  does NOT work
+          TString dirName(baseName);
+          dirName.ReplaceAll(".root","");
+//        sys->mkdir(dirName);          // does not work. must override "int MakeDirectory(const char* name)"
+          gSystem->mkdir(dirName,true);
+          directoryToBeSavedIn=dirName;
+    }
+    else if(dirType==2)
+    {
+        TSystem* sys=new TSystem();
+        directoryToBeSavedIn=sys->DirName(dir->GetName());
+    }
+    else if(dirType==3)
+    {
+//11          TSystem* sys=new TSystem();
+          TString dirName(dir->GetName());
+          dirName.ReplaceAll(".root","");
+//11          sys->mkdir(dirName,true);     // does not work. must override "int MakeDirectory(const char* name)"
+          gSystem->mkdir(dirName,true);
+          directoryToBeSavedIn=dirName;
+    }
+
+    saveAllGraphsToPicture(dir,fileType,directoryToBeSavedIn, styleIndex);
 }
 
 /*
