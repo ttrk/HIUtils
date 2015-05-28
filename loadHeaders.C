@@ -3,4 +3,5 @@
   gROOT->ProcessLine(".L /net/hisrv0001/home/tatar/code/HIUtils/histoUtil.h");
   gROOT->ProcessLine(".L /net/hisrv0001/home/tatar/code/HIUtils/systemUtils.h");
   gROOT->ProcessLine(".L /net/hisrv0001/home/tatar/code/HIUtils/smallPhotonUtil.h");
+  gROOT->ProcessLine(".L /net/hisrv0001/home/tatar/code/HIUtils/treeUtil.h");
 }
