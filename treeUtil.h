@@ -7,7 +7,6 @@
 #define TREEUTIL_H_
 
 #include <TTree.h>
-#include <TString.h>
 #include <TH1.h>
 #include <TFile.h>
 

@@ -5,9 +5,19 @@
 #ifndef HISTOUTIL_H_
 #define HISTOUTIL_H_
 
-
-//#include <TCut.h>               // compiling macros give error if this is not included.
+// compiling macros will give error if these classes are not included.
+#include <TCut.h>
+#include <TList.h>
+#include <TKey.h>
+#include <TDirectoryFile.h>
+#include <TH1.h>
+#include <TFile.h>
+#include <TCanvas.h>
+#include <TSystem.h>
 #include <TGraph.h>
+
+#include <iostream>
+#include <math.h>
 
 void     mergeCuts(TCut cut, TCut* cuts, int len);
 void     mergeCuts(TCut cut, TCut* cuts);
@@ -28,9 +38,7 @@ void     saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType="g
 void     saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType="gif", const char* directoryToBeSavedIn="", int styleIndex=0);
 void     saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType="gif", int dirType=0                      , int styleIndex=0);
 void     saveAllCanvasesToPicture(TList* canvases      , const char* fileType="gif", const char* directoryToBeSavedIn="");
-//void     saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType="gif");     // this line gives error if I use default value option (here const char* fileType="gif") in the function definition.
 
-using  std::string;
 using  std::cout;
 using  std::endl;
 

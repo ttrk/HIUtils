@@ -1,20 +1,17 @@
 #ifndef SMALLPHOTONUTIL_H_
 #define SMALLPHOTONUTIL_H_
 
-#include <TCanvas.h>            // compiling macros give error if this is not included.
-#include <TCut.h>               // compiling macros give error if this is not included.
-#include <TDirectoryFile.h>     // compiling macros give error if this is not included.
-#include <TSystem.h>	        // compiling macros give error if this is not included.
+// compiling macros will give error if these classes are not included.
+#include <TMath.h>
 
-#include <string>
-
-using  std::string;
-using  std::cout;
-using  std::endl;
+#include <iostream>
 
 Double_t getDR( Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2);
 Double_t getDPHI( Double_t phi1, Double_t phi2);
 Double_t getDETA(Double_t eta1, Double_t eta2);
+
+using  std::cout;
+using  std::endl;
 
 /*
  * copied from https://github.com/CmsHI/HiForestAnalysis/blob/master/commonUtility.h

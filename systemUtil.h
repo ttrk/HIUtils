@@ -4,21 +4,25 @@
  *  Created on: Mar 19, 2015
  */
 
-#ifndef SYSTEMUTILS_H_
-#define SYSTEMUTILS_H_
+#ifndef SYSTEMUTIL_H_
+#define SYSTEMUTIL_H_
 
-#include <TSystemDirectory.h>	// compiling macros give error if this is not included.
-#include <TSystemFile.h>    	// compiling macros give error if this is not included.
+// compiling macros will give error if these classes are not included.
+#include <TList.h>
+#include <TSystemDirectory.h>
+#include <TSystemFile.h>
+#include <TObjString.h>
 
-#include <string>
 #include <vector>
+#include <string>
+#include <iostream>
 
-using  std::string;
+
+TList*                   getFileNamesList(const char* dirname=".", const char* ext="");
+std::vector<std::string> getFileNames    (const char* dirname=".", const char* ext="");
+
 using  std::cout;
 using  std::endl;
-
-TList*              getFileNamesList(const char* dirname=".", const char* ext="");
-std::vector<string> getFileNames    (const char* dirname=".", const char* ext="");
 
 /*
  * get a list files and folders in the given directory
@@ -67,7 +71,7 @@ TList* getFileNamesList(const char* dirname /* ="." */, const char* ext /* ="" *
    return outFileNames;
 }
 
-std::vector<string> getFileNames(const char* dirname /* ="." */, const char* ext /* ="" */)
+std::vector<std::string> getFileNames(const char* dirname /* ="." */, const char* ext /* ="" */)
 {
 	TSystemDirectory dir(dirname, dirname);
 	TList* files = dir.GetListOfFiles();
@@ -92,4 +96,4 @@ std::vector<string> getFileNames(const char* dirname /* ="." */, const char* ext
 }
 
 
-#endif /* SYSTEMUTILS_H_ */
+#endif /* SYSTEMUTIL_H_ */
