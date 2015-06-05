@@ -2,7 +2,6 @@
  * systemUtils.h
  *
  *  Created on: Mar 19, 2015
- *      Author: kaya
  */
 
 #ifndef SYSTEMUTILS_H_
