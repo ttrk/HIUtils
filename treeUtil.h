@@ -22,6 +22,8 @@ void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, 
 bool compareTrees(TTree* tree1, TTree* tree2, int lenBranchNames = 0, const char* branchNames[] = NULL);
 bool compareTrees(TFile* file1, const char* tree1Path, TFile* file2, const char* tree2Path, int lenBranchNames = 0, const char* branchNames[] = NULL);
 
+TString mergeCuts(TString cut1, TString cut2);
+
 /*
  * plot the maximum value of the elements of a "formula" where the elements satisfy the "condition".
  * If no element satisfies "condition" : if plotZero is true, then 0 is plotted. Otherwise nothing is plotted.
@@ -281,6 +283,12 @@ bool compareTrees(TFile* file1, const char* tree1Path, TFile* file2, const char*
     TTree *t2 = (TTree*)file2->Get(tree2Path);
 
     return compareTrees(t1, t2, lenBranchNames, branchNames);
+}
+
+TString mergeCuts(TString cut1, TString cut2)
+{
+    TString cut = Form("%s && %s", cut1.Data(), cut2.Data());
+    return cut;
 }
 
 #endif /* TREEUTIL_H_ */

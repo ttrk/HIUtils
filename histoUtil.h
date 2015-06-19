@@ -63,6 +63,7 @@ void mergeCuts(TCut cut, TCut* cuts, int len)
     }
 }
 
+// NOTE : This function will NOT WORK.
 /*
  * merge a set of cuts into a single one. the resulting cut is the cut that satisfies all individual cuts
  *
