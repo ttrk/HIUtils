@@ -79,7 +79,8 @@ public:
     void updatePhotonSelections();
     void updateJetSelections();
     // draw kinematics
-    void drawFormula();
+    void drawMax(TString formula, TString formulaForMax, TString condition = "1", TH1* hist = NULL);
+    void drawMax(TString formula, TString formulaForMax, TString condition = "1", TString cut = "1", TH1* hist = NULL);
 
     // merge cuts
     static TString mergeSelections(TString sel1, TString sel2);

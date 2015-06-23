@@ -38,7 +38,7 @@ void GammaJetAnalyzer::Constructor(){
     ak3PFJetTree   = (TTree*)this->hiForestFile->Get("ak3PFJetAnalyzer/t");
     akPu3PFJetTree = (TTree*)this->hiForestFile->Get("akPu3PFJetAnalyzer/t");
 
-    setJetTree(jetType::akPu3PFJets);     // default jets are akPu3PFJets
+    setJetTree(akPu3PFJets);     // default jets are akPu3PFJets
 
     tree = evtTree;
     tree->AddFriend(skimTree,"HltTree");
@@ -55,10 +55,10 @@ void GammaJetAnalyzer::setJetTree(jetType jet) {
     // jetTree is not a stand-alone object,
     // it will not be cloned from a tree such as : jetTree = (TTree*)ak3PFJetTree->Clone();
     // jetTree points to the specified tree. Any change in "jetTree" will appear in the tree it points to.
-    if(jet == jetType::ak3PFJets)  {
+    if(jet == ak3PFJets)  {
         jetTree = ak3PFJetTree;
     }
-    else if (jet == jetType::akPu3PFJets) {
+    else if (jet == akPu3PFJets) {
         jetTree = akPu3PFJetTree;
     }
     else   {
@@ -151,7 +151,16 @@ void GammaJetAnalyzer::updateJetSelections() {
     cond_jet += Form(" && %s", cond_jet_dphi.Data());
 }
 
-static TString GammaJetAnalyzer::mergeSelections(TString sel1, TString sel2)
+void GammaJetAnalyzer::drawMax(TString formula, TString formulaForMax, TString condition, TH1* hist){
+    drawMaximumGeneral(tree, formula, formulaForMax, condition, hist);
+}
+
+void GammaJetAnalyzer::drawMax(TString formula, TString formulaForMax, TString condition, TString cut, TH1* hist){
+    drawMaximumGeneral(tree, formula, formulaForMax, condition, cut, hist);
+}
+
+// no need to use "static" keyword in function definition after it has been used in function declaration
+TString GammaJetAnalyzer::mergeSelections(TString sel1, TString sel2)
 {
     // this general purpose function was already implemented in "treeUtil.h"
     return mergeCuts(sel1, sel2);
