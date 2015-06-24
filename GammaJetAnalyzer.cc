@@ -159,6 +159,14 @@ void GammaJetAnalyzer::drawMax(TString formula, TString formulaForMax, TString c
     drawMaximumGeneral(tree, formula, formulaForMax, condition, cut, hist);
 }
 
+void GammaJetAnalyzer::drawMax2nd(TString formula, TString formulaForMax, TString condition, TH1* hist){
+    drawMaximum2ndGeneral(tree, formula, formulaForMax, condition, hist);
+}
+
+void GammaJetAnalyzer::drawMax2nd(TString formula, TString formulaForMax, TString condition, TString cut, TH1* hist){
+    drawMaximum2ndGeneral(tree, formula, formulaForMax, condition, cut, hist);
+}
+
 // no need to use "static" keyword in function definition after it has been used in function declaration
 TString GammaJetAnalyzer::mergeSelections(TString sel1, TString sel2)
 {
