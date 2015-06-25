@@ -98,8 +98,10 @@ bool compareHistograms(TH1* h1, TH1* h2)
 
 	for(int i=0; i<numBins; i++)
 	{
-		if(h1->GetBinContent(i)!=h2->GetBinContent(i))
+		if(h1->GetBinContent(i) != h2->GetBinContent(i))
 			return false;
+		if(h1->GetBinError(i) != h2->GetBinError(i))
+		    return false;
 	}
 	return true;
 }

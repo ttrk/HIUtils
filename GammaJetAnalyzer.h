@@ -33,6 +33,7 @@ const int pPAcollisionEventSelectionPA = 0;
 const int pcollisionEventSelection = 0;
 
 ////////// default cuts for photons //////////
+const float pt = 40;
 const float eta = 1.44;
 // spike rejection
 const float sigmaIphiIphi = 0.002;
@@ -83,6 +84,11 @@ public:
     void drawMax   (TString formula, TString formulaForMax, TString condition = "1", TString cut = "1", TH1* hist = NULL);
     void drawMax2nd(TString formula, TString formulaForMax, TString condition = "1", TH1* hist = NULL);
     void drawMax2nd(TString formula, TString formulaForMax, TString condition = "1", TString cut = "1", TH1* hist = NULL);
+    // draw jet kinematics
+    void drawMaxJet   (TString jetFormula, TString formulaForJetMax, TString cond = "1", TString cond_photon = "1", TH1* hist = NULL);
+    void drawMaxJet   (TString jetFormula, TString formulaForJetMax, TString cond = "1", TString cond_photon = "1", TString cut = "1", TH1* hist = NULL);
+    void drawMaxJet2nd(TString jetFormula, TString formulaForJetMax, TString cond = "1", TString cond_photon = "1", TH1* hist = NULL);
+    void drawMaxJet2nd(TString jetFormula, TString formulaForJetMax, TString cond = "1", TString cond_photon = "1", TString cut = "1", TH1* hist = NULL);
 
     // merge cuts
     static TString mergeSelections(TString sel1, TString sel2);
@@ -109,7 +115,7 @@ public:
     int cut_pcollisionEventSelection;           // skimTree : for HI events
     ////////// cuts for event // END ///
     ////////// cuts for photons //////////
-    // eta
+    float cut_pt;
     float cut_eta;
     // spike rejection
     float cut_swissCross;
@@ -144,6 +150,7 @@ public:
     TString cond_pcollisionEventSelection;
     ////////// selections for photons //////////
     TString cond_photon;    // selection for the photons
+    TString cond_pt;
     TString cond_eta;
     TString cond_spike;
     TString cond_iso;
@@ -151,6 +158,7 @@ public:
     TString cond_isEle;     // not included in cond_photon
     ////////// selections for jets //////////
     TString cond_jet;    // selection for the jets
+    TString cond_jet_deltaR;
     TString cond_jet_dphi;
 
 };

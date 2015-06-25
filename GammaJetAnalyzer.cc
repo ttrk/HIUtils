@@ -38,11 +38,10 @@ void GammaJetAnalyzer::Constructor(){
     ak3PFJetTree   = (TTree*)this->hiForestFile->Get("ak3PFJetAnalyzer/t");
     akPu3PFJetTree = (TTree*)this->hiForestFile->Get("akPu3PFJetAnalyzer/t");
 
-    setJetTree(akPu3PFJets);     // default jets are akPu3PFJets
-
     tree = evtTree;
     tree->AddFriend(skimTree,"HltTree");
     tree->AddFriend(photonTree,"photon");
+    setJetTree(akPu3PFJets);     // default jets are akPu3PFJets
 
     resetCuts();
     updateEventSelections();
@@ -55,6 +54,8 @@ void GammaJetAnalyzer::setJetTree(jetType jet) {
     // jetTree is not a stand-alone object,
     // it will not be cloned from a tree such as : jetTree = (TTree*)ak3PFJetTree->Clone();
     // jetTree points to the specified tree. Any change in "jetTree" will appear in the tree it points to.
+    tree->RemoveFriend(jetTree);
+
     if(jet == ak3PFJets)  {
         jetTree = ak3PFJetTree;
     }
@@ -64,6 +65,8 @@ void GammaJetAnalyzer::setJetTree(jetType jet) {
     else   {
         std::cout << "not a valid jet type entered." << std::endl;
     }
+
+    tree->AddFriend(jetTree, "t");
 }
 
 void GammaJetAnalyzer::resetCuts(){
@@ -79,6 +82,7 @@ void GammaJetAnalyzer::resetCuts(){
     cut_pcollisionEventSelection =pcollisionEventSelection;
 
     ////////// cuts for photons //////////
+    cut_pt = pt;
     cut_eta = eta;
     // spike rejection
     cut_swissCross = swissCross;
@@ -117,6 +121,7 @@ void GammaJetAnalyzer::updateEventSelections() {
 
 void GammaJetAnalyzer::updatePhotonSelections() {
 
+    cond_pt  = Form("pt > %f", cut_jet_pt);
     cond_eta = Form("abs(eta) < %f", cut_eta);
 
     cond_spike = Form("swissCrx < %f", cut_swissCross);
@@ -143,12 +148,12 @@ void GammaJetAnalyzer::updatePhotonSelections() {
 void GammaJetAnalyzer::updateJetSelections() {
 
     cond_jet = Form("jtpt > %f", cut_jet_pt);
-    cond_jet += Form(" && abs(eta) < %f", cut_jet_eta);
-    cond_jet += Form(" && IMPLEMENT_THIS > %f", cut_jet_photon_deltaR);
+    cond_jet += Form(" && abs(jteta) < %f", cut_jet_eta);
 
+    cond_jet_deltaR = Form(" && IMPLEMENT_THIS > %f", cut_jet_photon_deltaR);
     cond_jet_dphi = Form("IMPLEMENT_THIS > %f", cut_jet_photon_deltaPhi);
 
-    cond_jet += Form(" && %s", cond_jet_dphi.Data());
+//    cond_jet += Form(" && %s", cond_jet_dphi.Data());
 }
 
 void GammaJetAnalyzer::drawMax(TString formula, TString formulaForMax, TString condition, TH1* hist){
@@ -165,6 +170,26 @@ void GammaJetAnalyzer::drawMax2nd(TString formula, TString formulaForMax, TStrin
 
 void GammaJetAnalyzer::drawMax2nd(TString formula, TString formulaForMax, TString condition, TString cut, TH1* hist){
     drawMaximum2ndGeneral(tree, formula, formulaForMax, condition, cut, hist);
+}
+
+void GammaJetAnalyzer::drawMaxJet(TString jetFormula, TString formulaForJetMax, TString cond, TString cond_photon, TH1* hist)
+{
+    drawMaximumGeneral(tree, jetFormula, formulaForJetMax, cond, Form("Max$(%s)>0", cond_photon.Data()), hist);
+}
+
+void GammaJetAnalyzer::drawMaxJet(TString jetFormula, TString formulaForJetMax, TString cond, TString cond_photon, TString cut, TH1* hist)
+{
+    drawMaximumGeneral(tree, jetFormula, formulaForJetMax, cond, mergeSelections(Form("Max$(%s)>0", cond_photon.Data()), cut), hist);
+}
+
+void GammaJetAnalyzer::drawMaxJet2nd(TString jetFormula, TString formulaForJetMax, TString cond, TString cond_photon, TH1* hist)
+{
+    drawMaximum2ndGeneral(tree, jetFormula, formulaForJetMax, cond, Form("Max$(%s)>0", cond_photon.Data()), hist);
+}
+
+void GammaJetAnalyzer::drawMaxJet2nd(TString jetFormula, TString formulaForJetMax, TString cond, TString cond_photon, TString cut, TH1* hist)
+{
+    drawMaximum2ndGeneral(tree, jetFormula, formulaForJetMax, cond, mergeSelections(Form("Max$(%s)>0", cond_photon.Data()), cut), hist);
 }
 
 // no need to use "static" keyword in function definition after it has been used in function declaration

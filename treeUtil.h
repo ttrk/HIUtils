@@ -12,12 +12,12 @@
 
 void drawMaximum(TTree* tree, TString formula, TString condition = "1", TH1* hist = NULL, bool plotZero = false);
 void drawMaximum(TTree* tree, TString formula, TString condition = "1", TString cut = "1", TH1* hist = NULL, bool plotZero = false);
-void drawMaximumGeneral   (TTree* tree, TString formula, TString formulaForMax, TString condition = "1", TH1* hist = NULL);
-void drawMaximumGeneral   (TTree* tree, TString formula, TString formulaForMax, TString condition = "1", TString cut = "1", TH1* hist = NULL);
+void drawMaximumGeneral   (TTree* tree, TString formula, TString formulaForMax, TString conditionForMax = "1", TH1* hist = NULL);
+void drawMaximumGeneral   (TTree* tree, TString formula, TString formulaForMax, TString conditionForMax = "1", TString cut = "1", TH1* hist = NULL);
 void drawMaximum2nd(TTree* tree, TString formula, TString condition = "1", TH1* hist = NULL, bool plotZero = false);
 void drawMaximum2nd(TTree* tree, TString formula, TString condition = "1", TString cut = "1", TH1* hist = NULL, bool plotZero = false);
-void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, TString condition = "1", TH1* hist = NULL);
-void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, TString condition = "1", TString cut = "1", TH1* hist = NULL);
+void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, TString conditionForMax = "1", TH1* hist = NULL);
+void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, TString conditionForMax = "1", TString cut = "1", TH1* hist = NULL);
 
 bool compareTrees(TTree* tree1, TTree* tree2, int lenBranchNames = 0, const char* branchNames[] = NULL);
 bool compareTrees(TFile* file1, const char* tree1Path, TFile* file2, const char* tree2Path, int lenBranchNames = 0, const char* branchNames[] = NULL);
@@ -87,14 +87,14 @@ void drawMaximum(TTree* tree, TString formula, TString condition, TString cut, T
  *
  * https://root.cern.ch/root/html/TTree.html#TTree:Draw@2
  */
-void drawMaximumGeneral(TTree* tree, TString formula, TString formulaForMax, TString condition, TH1* hist)
+void drawMaximumGeneral(TTree* tree, TString formula, TString formulaForMax, TString conditionForMax, TH1* hist)
 {
     const char* hname="hDrawMax";
     if(hist!=NULL)
     {
        hname = hist->GetName();
     }
-    tree->Draw(Form("%s >> %s", formula.Data(), hname) ,Form("%s == Max$(%s*(%s))",formulaForMax.Data() ,formulaForMax.Data() ,condition.Data()));
+    tree->Draw(Form("%s >> %s", formula.Data(), hname) ,Form("%s == Max$(%s*(%s))",formulaForMax.Data() ,formulaForMax.Data() ,conditionForMax.Data()));
 }
 
 /*
@@ -107,14 +107,14 @@ void drawMaximumGeneral(TTree* tree, TString formula, TString formulaForMax, TSt
  *
  * https://root.cern.ch/root/html/TTree.html#TTree:Draw@2
  */
-void drawMaximumGeneral(TTree* tree, TString formula, TString formulaForMax, TString condition, TString cut, TH1* hist)
+void drawMaximumGeneral(TTree* tree, TString formula, TString formulaForMax, TString conditionForMax, TString cut, TH1* hist)
 {
     const char* hname="hDrawMax";
     if(hist!=NULL)
     {
        hname = hist->GetName();
     }
-    tree->Draw(Form("%s >> %s", formula.Data(), hname) ,Form("%s == Max$(%s*(%s)) && %s",formulaForMax.Data() ,formulaForMax.Data() ,condition.Data() ,cut.Data()));
+    tree->Draw(Form("%s >> %s", formula.Data(), hname) ,Form("%s == Max$(%s*(%s)) && %s",formulaForMax.Data() ,formulaForMax.Data() ,conditionForMax.Data() ,cut.Data()));
 }
 
 /*
@@ -176,7 +176,7 @@ void drawMaximum2nd(TTree* tree, TString formula, TString condition, TString cut
  *
  * https://root.cern.ch/root/html/TTree.html#TTree:Draw@2
  */
-void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, TString condition, TH1* hist)
+void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, TString conditionForMax, TH1* hist)
 {
     const char* hname="hDrawMax2nd";
     if(hist!=NULL)
@@ -184,7 +184,7 @@ void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, 
        hname = hist->GetName();
     }
     tree->Draw(Form("%s >> %s", formula.Data(), hname) ,Form("%s == Max$(%s*(%s < Max$(%s*(%s)))*(%s))",formulaForMax.Data() ,formulaForMax.Data() ,formulaForMax.Data() ,formulaForMax.Data() ,
-                                                                                                              condition.Data() ,condition.Data()));
+                                                                                                              conditionForMax.Data() ,conditionForMax.Data()));
 }
 
 /*
@@ -197,7 +197,7 @@ void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, 
  *
  * https://root.cern.ch/root/html/TTree.html#TTree:Draw@2
  */
-void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, TString condition, TString cut, TH1* hist)
+void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, TString conditionForMax, TString cut, TH1* hist)
 {
     const char* hname="hDrawMax2nd";
     if(hist!=NULL)
@@ -205,7 +205,7 @@ void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, 
        hname = hist->GetName();
     }
     tree->Draw(Form("%s >> %s", formula.Data(), hname) ,Form("%s == Max$(%s*(%s < Max$(%s*(%s)))*(%s)) && %s",formulaForMax.Data() ,formulaForMax.Data() ,formulaForMax.Data() ,formulaForMax.Data() ,
-                                                                                                              condition.Data() ,condition.Data() ,cut.Data()));
+                                                                                                              conditionForMax.Data() ,conditionForMax.Data() ,cut.Data()));
 }
 
 /*
