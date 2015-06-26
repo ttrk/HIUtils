@@ -43,6 +43,14 @@ void GammaJetAnalyzer::Constructor(){
     tree->AddFriend(photonTree,"photon");
     setJetTree(akPu3PFJets);     // default jets are akPu3PFJets
 
+//    dphi_photon_jet = "(((PHOTONPHI-jtphi) > 3.141592653589)*((PHOTONPHI-jtphi)-6.283185307178) + ((PHOTONPHI-jtphi) <= -3.141592653589)*((PHOTONPHI-jtphi)+6.283185307178))";
+//    dphi_photon_jet = "((PHOTONPHI-jtphi) > 3.141592653589)*((PHOTONPHI-jtphi)-6.283185307178) + ((PHOTONPHI-jtphi) <= -3.141592653589)*((PHOTONPHI-jtphi)+6.283185307178))";
+//    dphi_photon_jet = "((((PHOTONPHI-jtphi) <= 3.141592653589) && ((PHOTONPHI-jtphi) > -3.141592653589)) * (PHOTONPHI-jtphi) + ((PHOTONPHI-jtphi) > 3.141592653589)*((PHOTONPHI-jtphi)-6.283185307178) + ((PHOTONPHI-jtphi) <= -3.141592653589)*((PHOTONPHI-jtphi)+6.283185307178))";
+//        dphi_photon_jet = "((abs(PHOTONPHI-jtphi) <= 3.141592653589) * (PHOTONPHI-jtphi) + ((PHOTONPHI-jtphi) > 3.141592653589)*((PHOTONPHI-jtphi)-6.283185307178) + ((PHOTONPHI-jtphi) < -3.141592653589)*((PHOTONPHI-jtphi)+6.283185307178))";
+    dphi_photon_jet = "((abs(PHOTONPHI-jtphi) <= 3.141592653589) * (PHOTONPHI-jtphi) + (abs(PHOTONPHI-jtphi) > 3.141592653589)*((PHOTONPHI-jtphi)-6.283185307178))";
+    deta = "(eta-jteta)";
+    dR = Form("sqrt((%s)*(%s) + (%s)*(%s))", dphi_photon_jet.Data(), dphi_photon_jet.Data(), deta.Data(), deta.Data());
+
     resetCuts();
     updateEventSelections();
     updatePhotonSelections();
@@ -121,7 +129,7 @@ void GammaJetAnalyzer::updateEventSelections() {
 
 void GammaJetAnalyzer::updatePhotonSelections() {
 
-    cond_pt  = Form("pt > %f", cut_jet_pt);
+    cond_pt  = Form("pt > %f", cut_pt);
     cond_eta = Form("abs(eta) < %f", cut_eta);
 
     cond_spike = Form("swissCrx < %f", cut_swissCross);
@@ -138,8 +146,10 @@ void GammaJetAnalyzer::updatePhotonSelections() {
 
     cond_isEle = Form("isEle <= %d", cut_isEle);
 
+    cond_pt_eta = cond_pt.Data();
+    cond_pt_eta += Form(" && %s", cond_eta.Data());
     // default photon selection applies all the photon cuts
-    cond_photon = cond_eta.Data();
+    cond_photon = cond_pt_eta.Data();
     cond_photon += Form(" && %s", cond_spike.Data());
     cond_photon += Form(" && %s", cond_iso.Data());
     cond_photon += Form(" && %s", cond_purity.Data());
@@ -147,13 +157,12 @@ void GammaJetAnalyzer::updatePhotonSelections() {
 
 void GammaJetAnalyzer::updateJetSelections() {
 
+    cond_jet_deltaR = Form(" %s > %f", dR.Data(), cut_jet_photon_deltaR);
+    cond_jet_dphi = Form("abs(%s) >= %f", dphi_photon_jet.Data(), cut_jet_photon_deltaPhi);
+
     cond_jet = Form("jtpt > %f", cut_jet_pt);
     cond_jet += Form(" && abs(jteta) < %f", cut_jet_eta);
-
-    cond_jet_deltaR = Form(" && IMPLEMENT_THIS > %f", cut_jet_photon_deltaR);
-    cond_jet_dphi = Form("IMPLEMENT_THIS > %f", cut_jet_photon_deltaPhi);
-
-//    cond_jet += Form(" && %s", cond_jet_dphi.Data());
+    cond_jet += Form(" && %s", cond_jet_dphi.Data());
 }
 
 void GammaJetAnalyzer::drawMax(TString formula, TString formulaForMax, TString condition, TH1* hist){
@@ -174,12 +183,14 @@ void GammaJetAnalyzer::drawMax2nd(TString formula, TString formulaForMax, TStrin
 
 void GammaJetAnalyzer::drawMaxJet(TString jetFormula, TString formulaForJetMax, TString cond, TString cond_photon, TH1* hist)
 {
-    drawMaximumGeneral(tree, jetFormula, formulaForJetMax, cond, Form("Max$(%s)>0", cond_photon.Data()), hist);
+    TString cond2 = cond.ReplaceAll("PHOTONPHI", Form("Sum$(phi*(pt == Max$(pt*(%s))))", cond_photon.Data()));
+    drawMaximumGeneral(tree, jetFormula, formulaForJetMax, cond2, Form("Max$(%s)>0", cond_photon.Data()), hist);
 }
 
 void GammaJetAnalyzer::drawMaxJet(TString jetFormula, TString formulaForJetMax, TString cond, TString cond_photon, TString cut, TH1* hist)
 {
-    drawMaximumGeneral(tree, jetFormula, formulaForJetMax, cond, mergeSelections(Form("Max$(%s)>0", cond_photon.Data()), cut), hist);
+    TString cond2 = cond.ReplaceAll("PHOTONPHI", Form("Sum$(phi*(pt == Max$(pt*(%s))))", cond_photon.Data()));
+    drawMaximumGeneral(tree, jetFormula, formulaForJetMax, cond2, mergeSelections(Form("Max$(%s)>0", cond_photon.Data()), cut), hist);
 }
 
 void GammaJetAnalyzer::drawMaxJet2nd(TString jetFormula, TString formulaForJetMax, TString cond, TString cond_photon, TH1* hist)

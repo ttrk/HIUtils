@@ -17,6 +17,8 @@
 
 #include "treeUtil.h"
 
+#define PI 3.141592653589
+
 enum jetType {
     ak3PFJets,
     akPu3PFJets
@@ -55,14 +57,18 @@ const int isEle = 0;
 const float jet_pt = 30;
 const float jet_eta = 3;
 const float jet_photon_deltaR = 0.4;
-const float jet_photon_deltaPhi = (7 * TMath::Pi()) / 8 ;   // 7/8 * TMath::Pi() --> evaluates to 0;
+const float jet_photon_deltaPhi = PI * 7./8.;
 ////////// default cuts for jets // END ///
-
 
 class GammaJetAnalyzer {
 private:
     TTree* ak3PFJetTree;        // for pp events
     TTree* akPu3PFJetTree;      // for pA or HI events
+
+    // special selections
+    TString dphi_photon_jet;
+    TString deta;
+    TString dR;
 
     void Constructor();         // assume "constructor delegation" is not implemented.
                                 // a constructor does not call another constructor,
@@ -152,6 +158,7 @@ public:
     TString cond_photon;    // selection for the photons
     TString cond_pt;
     TString cond_eta;
+    TString cond_pt_eta;    // cond_pt + cond_eta
     TString cond_spike;
     TString cond_iso;
     TString cond_purity;
