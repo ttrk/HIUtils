@@ -253,11 +253,11 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
     gja->drawMax2nd("phi", "pt", gja->cond_photon,   gja->cond_event, fPhi_2nd_gja[5]);
 
     std::cout<<histoSuffix[0]<<std::endl;
-    gja->drawMaxJet("jtpt", "jtpt", gja->cond_jet, "nPhotons>0", fJetPt_gja[0]);    std::cout<<histoSuffix[1]<<std::endl;
-    gja->drawMaxJet("jtpt", "jtpt", gja->cond_jet, "nPhotons>0",              gja->cond_event, fJetPt_gja[1]);  std::cout<<histoSuffix[2]<<std::endl;
-    gja->drawMaxJet("jtpt", "jtpt", gja->cond_jet, gja->cond_pt_eta.Data(),   gja->cond_event, fJetPt_gja[2]);std::cout<<histoSuffix[3]<<std::endl;
-    gja->drawMaxJet("jtpt", "jtpt", gja->cond_jet, cond_eta_spike.Data(),     gja->cond_event, fJetPt_gja[3]);std::cout<<histoSuffix[4]<<std::endl;
-    gja->drawMaxJet("jtpt", "jtpt", gja->cond_jet, cond_eta_spike_iso.Data(), gja->cond_event, fJetPt_gja[4]);std::cout<<histoSuffix[5]<<std::endl;
+    gja->drawMaxJet("jtpt", "jtpt", gja->cond_jet, "nPhotons>0", fJetPt_gja[0]);
+    gja->drawMaxJet("jtpt", "jtpt", gja->cond_jet, "nPhotons>0",              gja->cond_event, fJetPt_gja[1]);
+    gja->drawMaxJet("jtpt", "jtpt", gja->cond_jet, gja->cond_pt_eta.Data(),   gja->cond_event, fJetPt_gja[2]);
+    gja->drawMaxJet("jtpt", "jtpt", gja->cond_jet, cond_eta_spike.Data(),     gja->cond_event, fJetPt_gja[3]);
+    gja->drawMaxJet("jtpt", "jtpt", gja->cond_jet, cond_eta_spike_iso.Data(), gja->cond_event, fJetPt_gja[4]);
     gja->drawMaxJet("jtpt", "jtpt", gja->cond_jet, gja->cond_photon.Data(),   gja->cond_event, fJetPt_gja[5]);
 
     gja->drawMaxJet("jtphi", "jtpt", gja->cond_jet, "nPhotons>0", fJetPhi_gja[0]);
@@ -267,19 +267,19 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
     gja->drawMaxJet("jtphi", "jtpt", gja->cond_jet, cond_eta_spike_iso.Data(), gja->cond_event, fJetPhi_gja[4]);
     gja->drawMaxJet("jtphi", "jtpt", gja->cond_jet, gja->cond_photon.Data(),   gja->cond_event, fJetPhi_gja[5]);
 
-//    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, "nPhotons>0", fJetPt_2nd_gja[0]);
-//    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, "nPhotons>0",              gja->cond_event, fJetPt_2nd_gja[1]);
-//    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, gja->cond_pt_eta.Data(),   gja->cond_event, fJetPt_2nd_gja[2]);
-//    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, cond_eta_spike.Data(),     gja->cond_event, fJetPt_2nd_gja[3]);
-//    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, cond_eta_spike_iso.Data(), gja->cond_event, fJetPt_2nd_gja[4]);
-//    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, gja->cond_photon.Data(),   gja->cond_event, fJetPt_2nd_gja[5]);
-//
-//    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, "nPhotons>0", fJetPhi_2nd_gja[0]);
-//    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, "nPhotons>0",              gja->cond_event, fJetPhi_2nd_gja[1]);
-//    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, gja->cond_pt_eta.Data(),   gja->cond_event, fJetPhi_2nd_gja[2]);
-//    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, cond_eta_spike.Data(),     gja->cond_event, fJetPhi_2nd_gja[3]);
-//    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, cond_eta_spike_iso.Data(), gja->cond_event, fJetPhi_2nd_gja[4]);
-//    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, gja->cond_photon.Data(),   gja->cond_event, fJetPhi_2nd_gja[5]);
+    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, "nPhotons>0", fJetPt_2nd_gja[0]);
+    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, "nPhotons>0",              gja->cond_event, fJetPt_2nd_gja[1]);
+    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, gja->cond_pt_eta.Data(),   gja->cond_event, fJetPt_2nd_gja[2]);
+    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, cond_eta_spike.Data(),     gja->cond_event, fJetPt_2nd_gja[3]);
+    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, cond_eta_spike_iso.Data(), gja->cond_event, fJetPt_2nd_gja[4]);
+    gja->drawMaxJet2nd("jtpt", "jtpt", gja->cond_jet, gja->cond_photon.Data(),   gja->cond_event, fJetPt_2nd_gja[5]);
+
+    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, "nPhotons>0", fJetPhi_2nd_gja[0]);
+    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, "nPhotons>0",              gja->cond_event, fJetPhi_2nd_gja[1]);
+    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, gja->cond_pt_eta.Data(),   gja->cond_event, fJetPhi_2nd_gja[2]);
+    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, cond_eta_spike.Data(),     gja->cond_event, fJetPhi_2nd_gja[3]);
+    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, cond_eta_spike_iso.Data(), gja->cond_event, fJetPhi_2nd_gja[4]);
+    gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, gja->cond_photon.Data(),   gja->cond_event, fJetPhi_2nd_gja[5]);
 
     end_gja = std::clock();
     std::cout << "GammaJetAnalyzer is making plots : DONE" << std::endl;

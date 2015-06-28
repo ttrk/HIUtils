@@ -9,7 +9,7 @@ colType=0;
 #colType=1;
 ###
 
-outputFile="test_GammaJetAnalyzer_v2506.root";
+outputFile="test_GammaJetAnalyzer_v2706.root";
 
 g++ $progName.C $(root-config --cflags --libs) -Wall -O2 -o $progName.exe
 

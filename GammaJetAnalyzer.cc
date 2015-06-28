@@ -47,7 +47,8 @@ void GammaJetAnalyzer::Constructor(){
 //    dphi_photon_jet = "((PHOTONPHI-jtphi) > 3.141592653589)*((PHOTONPHI-jtphi)-6.283185307178) + ((PHOTONPHI-jtphi) <= -3.141592653589)*((PHOTONPHI-jtphi)+6.283185307178))";
 //    dphi_photon_jet = "((((PHOTONPHI-jtphi) <= 3.141592653589) && ((PHOTONPHI-jtphi) > -3.141592653589)) * (PHOTONPHI-jtphi) + ((PHOTONPHI-jtphi) > 3.141592653589)*((PHOTONPHI-jtphi)-6.283185307178) + ((PHOTONPHI-jtphi) <= -3.141592653589)*((PHOTONPHI-jtphi)+6.283185307178))";
 //        dphi_photon_jet = "((abs(PHOTONPHI-jtphi) <= 3.141592653589) * (PHOTONPHI-jtphi) + ((PHOTONPHI-jtphi) > 3.141592653589)*((PHOTONPHI-jtphi)-6.283185307178) + ((PHOTONPHI-jtphi) < -3.141592653589)*((PHOTONPHI-jtphi)+6.283185307178))";
-    dphi_photon_jet = "((abs(PHOTONPHI-jtphi) <= 3.141592653589) * (PHOTONPHI-jtphi) + (abs(PHOTONPHI-jtphi) > 3.141592653589)*((PHOTONPHI-jtphi)-6.283185307178))";
+//    dphi_photon_jet = "((abs(PHOTONPHI-jtphi) <= 3.141592653589) * (PHOTONPHI-jtphi) + (abs(PHOTONPHI-jtphi) > 3.141592653589)*(abs(PHOTONPHI-jtphi)-6.283185307178))";
+    dphi_photon_jet = "(abs(PHOTONPHI-jtphi) + (abs(PHOTONPHI-jtphi) > 3.141592653589)*(-6.283185307178))";
     deta = "(eta-jteta)";
     dR = Form("sqrt((%s)*(%s) + (%s)*(%s))", dphi_photon_jet.Data(), dphi_photon_jet.Data(), deta.Data(), deta.Data());
 
@@ -195,12 +196,14 @@ void GammaJetAnalyzer::drawMaxJet(TString jetFormula, TString formulaForJetMax, 
 
 void GammaJetAnalyzer::drawMaxJet2nd(TString jetFormula, TString formulaForJetMax, TString cond, TString cond_photon, TH1* hist)
 {
-    drawMaximum2ndGeneral(tree, jetFormula, formulaForJetMax, cond, Form("Max$(%s)>0", cond_photon.Data()), hist);
+    TString cond2 = cond.ReplaceAll("PHOTONPHI", Form("Sum$(phi*(pt == Max$(pt*(%s))))", cond_photon.Data()));
+    drawMaximum2ndGeneral(tree, jetFormula, formulaForJetMax, cond2, Form("Max$(%s)>0", cond_photon.Data()), hist);
 }
 
 void GammaJetAnalyzer::drawMaxJet2nd(TString jetFormula, TString formulaForJetMax, TString cond, TString cond_photon, TString cut, TH1* hist)
 {
-    drawMaximum2ndGeneral(tree, jetFormula, formulaForJetMax, cond, mergeSelections(Form("Max$(%s)>0", cond_photon.Data()), cut), hist);
+    TString cond2 = cond.ReplaceAll("PHOTONPHI", Form("Sum$(phi*(pt == Max$(pt*(%s))))", cond_photon.Data()));
+    drawMaximum2ndGeneral(tree, jetFormula, formulaForJetMax, cond2, mergeSelections(Form("Max$(%s)>0", cond_photon.Data()), cut), hist);
 }
 
 // no need to use "static" keyword in function definition after it has been used in function declaration
