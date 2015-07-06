@@ -10,6 +10,8 @@
 #include <TH1.h>
 #include <TFile.h>
 
+#include <cstdarg>
+
 void drawMaximum(TTree* tree, TString formula, TString condition = "1", TH1* hist = NULL, bool plotZero = false);
 void drawMaximum(TTree* tree, TString formula, TString condition = "1", TString cut = "1", TH1* hist = NULL, bool plotZero = false);
 void drawMaximumGeneral   (TTree* tree, TString formula, TString formulaForMax, TString conditionForMax = "1", TH1* hist = NULL);
@@ -23,6 +25,7 @@ bool compareTrees(TTree* tree1, TTree* tree2, int lenBranchNames = 0, const char
 bool compareTrees(TFile* file1, const char* tree1Path, TFile* file2, const char* tree2Path, int lenBranchNames = 0, const char* branchNames[] = NULL);
 
 TString mergeCuts(TString cut1, TString cut2);
+TString mergeCuts2(int nCuts, ...);
 
 /*
  * plot the maximum value of the elements of a "formula" where the elements satisfy the "condition".
@@ -209,7 +212,7 @@ void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, 
 }
 
 /*
- * general function to compare "TTree"s. A comparison is based on a list of branches
+ * general function to compare "TTree"s. A comparison is based on a list of branches.
  *
  * returns false if comparison does not succeed
  *
@@ -288,6 +291,39 @@ bool compareTrees(TFile* file1, const char* tree1Path, TFile* file2, const char*
 TString mergeCuts(TString cut1, TString cut2)
 {
     TString cut = Form("%s && %s", cut1.Data(), cut2.Data());
+    return cut;
+}
+
+/*
+ * function to merge a variable number of cuts.
+ * The cuts are of type "const char*"
+ * assumes that "nCuts" matches the number of cuts entered in the function call
+ *
+ * http://en.cppreference.com/w/cpp/utility/variadic
+ * http://en.cppreference.com/w/cpp/language/variadic_arguments
+ * http://www.cplusplus.com/reference/cstdarg/va_arg/
+ * http://www.cplusplus.com/reference/cstdarg/
+ *
+ * */
+TString mergeCuts2(int nCuts, ...)
+{
+    va_list vl;
+    va_start(vl,nCuts);
+
+    TString cutNext = va_arg(vl, const char*);
+    TString cut = cutNext.Data();
+    if(nCuts == 1 && cutNext.Length() > 0)
+        return cut;
+
+    for (int i=1; i<nCuts; ++i)
+    {
+        cutNext = va_arg(vl, const char*);
+        if(cutNext.Length() > 0){
+            cut = Form("%s && %s", cut.Data(), cutNext.Data());
+        }
+    }
+    va_end(vl);
+
     return cut;
 }
 
