@@ -33,6 +33,7 @@ const float hf4sum_lt = 9999;
 const int pHBHENoiseFilter = 0;
 const int pPAcollisionEventSelectionPA = 0;
 const int pcollisionEventSelection = 0;
+const int skip_event = -1;
 
 ////////// default cuts for photons //////////
 const float pt = 40;
@@ -82,6 +83,7 @@ public:
 
     // set selections/cuts
     void resetCuts();
+    void updateSelections();
     void updateEventSelections();
     void updatePhotonSelections();
     void updateJetSelections();
@@ -98,7 +100,6 @@ public:
 
     // merge cuts
     static TString mergeSelections(TString sel1, TString sel2);
-
 
     TFile* hiForestFile;
     // Trees
@@ -119,6 +120,8 @@ public:
     int cut_pHBHENoiseFilter;                   // skimTree
     int cut_pPAcollisionEventSelectionPA;       // skimTree : for pp or pA events
     int cut_pcollisionEventSelection;           // skimTree : for HI events
+    int cut_skip_event;                         // after the first event, ignore every "skip_event" many events.
+                                                // faster results with less data
     ////////// cuts for event // END ///
     ////////// cuts for photons //////////
     float cut_pt;
@@ -165,6 +168,8 @@ public:
     TString cond_isEle;     // not included in cond_photon
     ////////// selections for jets //////////
     TString cond_jet;    // selection for the jets
+    TString cond_jet_pt;
+    TString cond_jet_eta;
     TString cond_jet_deltaR;
     TString cond_jet_dphi;
 
