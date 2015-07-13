@@ -45,6 +45,7 @@ void GammaJetAnalyzer::Constructor(){
 
     resetCuts();
     updateSelections();
+    updateEventList();
 }
 
 void GammaJetAnalyzer::setJetTree(jetType jet) {
@@ -78,7 +79,6 @@ void GammaJetAnalyzer::resetCuts(){
     cut_pHBHENoiseFilter = pHBHENoiseFilter;
     cut_pPAcollisionEventSelectionPA = pPAcollisionEventSelectionPA;
     cut_pcollisionEventSelection = pcollisionEventSelection;
-    cut_skip_event = skip_event;
 
     ////////// cuts for photons //////////
     cut_pt = pt;
@@ -103,6 +103,9 @@ void GammaJetAnalyzer::resetCuts(){
     cut_jet_eta = jet_eta;
     cut_jet_photon_deltaR = jet_photon_deltaR;
     cut_jet_photon_deltaPhi = jet_photon_deltaPhi;
+
+    ////////// cuts for TEventList (external cuts) //////////
+    cut_skip_event = skip_event;
 }
 
 void GammaJetAnalyzer::updateSelections() {
@@ -123,11 +126,6 @@ void GammaJetAnalyzer::updateEventSelections() {
     cond_pcollisionEventSelection = Form("pcollisionEventSelection > %d", cut_pcollisionEventSelection);
 
     cond_event = cond_vz.Data();
-    if(cut_skip_event > 0)
-    {
-        cond_event += " && Entry$ %";
-        cond_event += Form("%d == 0", cut_skip_event);
-    }
 }
 
 void GammaJetAnalyzer::updatePhotonSelections() {
@@ -180,6 +178,48 @@ void GammaJetAnalyzer::updateJetSelections() {
     cond_jet += Form(" && %s", cond_jet_deltaR.Data());
 }
 
+void GammaJetAnalyzer::updateEventListSelections(){
+
+    cond_skip_event = "";
+    if(cut_skip_event > 0)
+    {
+        cond_skip_event += "Entry$ %";
+        cond_skip_event += Form("%d == 0", cut_skip_event);
+    }
+
+    cond_eventlist = cond_skip_event.Data();
+
+    if(cond_eventlist.Length() <= 0)
+        cond_eventlist = "1";       // default event list
+}
+
+void GammaJetAnalyzer::updateEventList(){
+
+    updateEventListSelections();
+    updateEventList(cond_eventlist);
+}
+
+
+void GammaJetAnalyzer::resetEventList() {
+
+    cond_eventlist = "1";       // default event list
+    updateEventList(cond_eventlist);
+}
+
+void GammaJetAnalyzer::updateEventList(TString condition){
+
+    if(condition.Length() <= 0)
+        condition = "1";
+
+    const char* elist_tmp_name="elist_tmp";
+    tree->Draw(Form(">> %s", elist_tmp_name) , condition);
+    eventlist = ((TEventList*)gDirectory->Get(elist_tmp_name)->Clone("eventlist_GammaJetAnalyzer"));
+    gDirectory->Delete(elist_tmp_name);
+
+    jetTree->SetEventList(eventlist);
+    tree->SetEventList(eventlist);
+}
+
 void GammaJetAnalyzer::drawMax(TString formula, TString formulaForMax, TString condition, TH1* hist){
     drawMaximumGeneral(tree, formula, formulaForMax, condition, hist);
 }
@@ -212,6 +252,7 @@ void GammaJetAnalyzer::drawMaxJet(TString jetFormula, TString formulaForJetMax, 
 
     drawMaximumGeneral(tree, jetFormula, formulaForJetMax, cond, hist);
 
+    tree->SetEventList(eventlist);      // restore the original event list after making the histogram
     elist->Delete();
 }
 
@@ -231,6 +272,7 @@ void GammaJetAnalyzer::drawMaxJet2nd(TString jetFormula, TString formulaForJetMa
 
     drawMaximum2ndGeneral(tree, jetFormula, formulaForJetMax, cond, hist);
 
+    tree->SetEventList(eventlist);      // restore the original event list after making the histogram
     elist->Delete();
 }
 

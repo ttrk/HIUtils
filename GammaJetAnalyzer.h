@@ -11,6 +11,7 @@
 #include <TFile.h>
 #include <TString.h>
 #include <TTree.h>
+#include <TEventList.h>
 #include <TMath.h>
 
 #include <iostream>
@@ -74,6 +75,11 @@ private:
     void Constructor();         // assume "constructor delegation" is not implemented.
                                 // a constructor does not call another constructor,
                                 // but uses "Constructor()" to do the reduntant part of the object construction.
+    void updateEventSelections();
+    void updatePhotonSelections();
+    void updateJetSelections();
+    void updateEventListSelections();
+
 public:
     GammaJetAnalyzer();
     GammaJetAnalyzer(TFile* hiForestFile);
@@ -84,9 +90,9 @@ public:
     // set selections/cuts
     void resetCuts();
     void updateSelections();
-    void updateEventSelections();
-    void updatePhotonSelections();
-    void updateJetSelections();
+    void updateEventList();
+    void resetEventList();
+    void updateEventList(TString condition);
     // draw kinematics
     void drawMax   (TString formula, TString formulaForMax, TString condition = "1", TH1* hist = NULL);
     void drawMax   (TString formula, TString formulaForMax, TString condition = "1", TString cut = "1", TH1* hist = NULL);
@@ -108,6 +114,8 @@ public:
     TTree* skimTree;
     TTree* photonTree;
     TTree* jetTree;
+    // EventList
+    TEventList* eventlist;
     // Histograms
     TH1D* h;
 
@@ -120,8 +128,6 @@ public:
     int cut_pHBHENoiseFilter;                   // skimTree
     int cut_pPAcollisionEventSelectionPA;       // skimTree : for pp or pA events
     int cut_pcollisionEventSelection;           // skimTree : for HI events
-    int cut_skip_event;                         // after the first event, ignore every "skip_event" many events.
-                                                // faster results with less data
     ////////// cuts for event // END ///
     ////////// cuts for photons //////////
     float cut_pt;
@@ -147,6 +153,10 @@ public:
     float cut_jet_photon_deltaR;
     float cut_jet_photon_deltaPhi;
     ////////// cuts for jets // END ///
+    ////////// cuts for TEventList (external cuts) //////////
+    int cut_skip_event;                         // after the first event, ignore every "skip_event" many events.
+                                                // faster results with less data
+    ////////// cuts for TEventList (external cuts) // END ///
 
     // selections are in TTree::Draw() function to perform the selection
     ////////// selections for event //////////
@@ -172,6 +182,9 @@ public:
     TString cond_jet_eta;
     TString cond_jet_deltaR;
     TString cond_jet_dphi;
+    ////////// selections for TEventList (external cuts) //////////
+    TString cond_eventlist;
+    TString cond_skip_event;
 
 };
 

@@ -219,7 +219,7 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
     TString cond_eta_spike_iso = GammaJetAnalyzer::mergeSelections(cond_eta_spike, gja->cond_iso);
     int skip_event = -1;
     gja->cut_skip_event = skip_event;
-    gja->updateSelections();
+    gja->updateEventList();
     std::cout << "GammaJetAnalyzer is being initialized : DONE" << std::endl;
     std::cout << "GammaJetAnalyzer is making plots ..." << std::endl;
 

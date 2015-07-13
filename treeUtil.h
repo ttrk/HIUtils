@@ -115,13 +115,14 @@ void drawMaximumGeneral(TTree* tree, TString formula, TString formulaForMax, TSt
        hname = hist->GetName();
     }
 
+    TEventList* elist_original = tree->GetEventList();
     TEventList* elist = getMaximumEventList(tree, formulaForMax, conditionForMax);
     elist->SetReapplyCut(true); // among the elements in the event pick only the one that passes the selection
     tree->SetEventList(elist);
     tree->Draw(Form("%s >> %s", formula.Data(), hname));
 
-    tree->SetEventList(0);   // restore the original event list after making the histogram
-                             // tree->SetEntryList(0);  --> this approach does not work
+    tree->SetEventList(elist_original);   // restore the original event list after making the histogram
+                                          // tree->SetEntryList(elist_original);  --> this approach does not work
     elist->Delete();
 }
 
@@ -145,13 +146,14 @@ void drawMaximumGeneral(TTree* tree, TString formula, TString formulaForMax, TSt
        hname = hist->GetName();
     }
 
+    TEventList* elist_original = tree->GetEventList();
     TEventList* elist = getMaximumEventList(tree, formulaForMax, conditionForMax, cut);
     elist->SetReapplyCut(true); // among the elements in the event pick only the one that passes the selection
     tree->SetEventList(elist);
     tree->Draw(Form("%s >> %s", formula.Data(), hname));
 
-    tree->SetEventList(0);   // restore the original event list after making the histogram
-                             // tree->SetEntryList(0);  --> this approach does not work
+    tree->SetEventList(elist_original);   // restore the original event list after making the histogram
+                                          // tree->SetEntryList(elist_original);  --> this approach does not work
     elist->Delete();
 }
 
@@ -224,13 +226,14 @@ void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, 
        hname = hist->GetName();
     }
 
+    TEventList* elist_original = tree->GetEventList();
     TEventList* elist = getMaximum2ndEventList(tree, formulaForMax, conditionForMax);
     elist->SetReapplyCut(true); // among the elements in the event pick only the one that passes the selection
     tree->SetEventList(elist);
     tree->Draw(Form("%s >> %s", formula.Data(), hname));
 
-    tree->SetEventList(0);   // restore the original event list after making the histogram
-                             // tree->SetEntryList(0);  --> this approach does not work
+    tree->SetEventList(elist_original);   // restore the original event list after making the histogram
+                                          // tree->SetEntryList(elist_original);  --> this approach does not work
     elist->Delete();
 }
 
@@ -252,13 +255,14 @@ void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, 
        hname = hist->GetName();
     }
 
+    TEventList* elist_original = tree->GetEventList();
     TEventList* elist = getMaximum2ndEventList(tree, formulaForMax, conditionForMax, cut);
     elist->SetReapplyCut(true); // among the elements in the event pick only the one that passes the selection
     tree->SetEventList(elist);
     tree->Draw(Form("%s >> %s", formula.Data(), hname));
 
-    tree->SetEventList(0);   // restore the original event list after making the histogram
-                             // tree->SetEntryList(0);  --> this approach does not work
+    tree->SetEventList(elist_original);   // restore the original event list after making the histogram
+                                          // tree->SetEntryList(elist_original);  --> this approach does not work
     elist->Delete();
 }
 

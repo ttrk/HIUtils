@@ -96,7 +96,7 @@ bool compareHistograms(TH1* h1, TH1* h2)
 	if(numBins != h2->GetNbinsX())
 		return false;
 
-	for(int i=0; i<numBins; i++)
+	for(int i=0; i<=numBins+1; i++)
 	{
 		if(h1->GetBinContent(i) != h2->GetBinContent(i))
 			return false;
