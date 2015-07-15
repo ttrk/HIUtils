@@ -13,6 +13,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1D.h>
+#include <TH2D.h>
 #include <TMath.h>
 
 #include <iostream>
@@ -122,6 +123,7 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
                                            "_purity"};    // event selection + eta cut + spike rejection + isolation + purity
     // eta cut includes photon pT > 40 GeV cut as well.
 
+    // TH1D
     // leading photon histograms
     const int nBins = 1000;
     const float maxPt = 500;
@@ -167,8 +169,53 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
     TH1D* fJetPhi_2nd[numHistos];       // phi histograms for subleading jet, to be filled by LOOP
     TH1D* fJetPhi_2nd_gja[numHistos];   // phi histograms for subleading jet, to be filled by GammaJetAnalyzer
 
+    // TH2D
+    // leading photon histograms
+    const int nBins2D = nBins;
+    TH2D* fPtvsSigmaIetaIeta[numHistos];       // photon pT vs. sigmaIetaIeta histograms for leading photon, to be filled by LOOP
+    TH2D* fPtvsSigmaIetaIeta_gja[numHistos];   // photon pT vs. sigmaIetaIeta histograms for leading photon, to be filled by GammaJetAnalyzer
+
+    const float maxEta = 2;
+    TH2D* fPtvsEta[numHistos];       // photon pT vs. eta histograms for leading photon, to be filled by LOOP
+    TH2D* fPtvsEta_gja[numHistos];   // photon pT vs. eta histograms for leading photon, to be filled by GammaJetAnalyzer
+
+    // subleading photon histograms
+    TH2D* fPtvsSigmaIetaIeta_2nd[numHistos];       // photon pT vs. sigmaIetaIeta histograms for subleading photon, to be filled by LOOP
+    TH2D* fPtvsSigmaIetaIeta_2nd_gja[numHistos];   // photon pT vs. sigmaIetaIeta histograms for subleading photon, to be filled by GammaJetAnalyzer
+
+    TH2D* fPtvsEta_2nd[numHistos];       // photon pT vs. eta histograms for subleading photon, to be filled by LOOP
+    TH2D* fPtvsEta_2nd_gja[numHistos];    // photon pT vs. eta histograms for subleading photon, to be filled by GammaJetAnalyzer
+
+    // leading jet histograms
+    TH2D* fJetPtvsEta[numHistos];       // jet pT vs. eta histograms for leading jet, to be filled by LOOP
+    TH2D* fJetPtvsEta_gja[numHistos];   // jet pT vs. eta histograms for leading jet, to be filled by GammaJetAnalyzer
+
+    TH2D* fJetPtvsPt[numHistos];       // jet pT vs. leading photon pT histograms for leading jet, to be filled by LOOP
+    TH2D* fJetPtvsPt_gja[numHistos];   // jet pT vs. leading photon pT histograms for leading jet, to be filled by GammaJetAnalyzer
+
+    TH2D* fJetEtavsEta[numHistos];       // jet eta vs. leading photon eta histograms for leading jet, to be filled by LOOP
+    TH2D* fJetEtavsEta_gja[numHistos];   // jet eta vs. leading photon eta histograms for leading jet, to be filled by GammaJetAnalyzer
+
+    TH2D* fJetPhivsPhi[numHistos];       // jet phi vs. leading photon phi histograms for leading jet, to be filled by LOOP
+    TH2D* fJetPhivsPhi_gja[numHistos];   // jet phi vs. leading photon phi histograms for leading jet, to be filled by GammaJetAnalyzer
+
+    // subleading jet histograms
+    TH2D* fJetPtvsEta_2nd[numHistos];       // jet pT vs. eta histograms for subleading jet, to be filled by LOOP
+    TH2D* fJetPtvsEta_2nd_gja[numHistos];   // jet pT vs. eta histograms for subleading jet, to be filled by GammaJetAnalyzer
+
+    TH2D* fJetPtvsPt_2nd[numHistos];       // jet pT vs. leading photon pT histograms for subleading jet, to be filled by LOOP
+    TH2D* fJetPtvsPt_2nd_gja[numHistos];   // jet pT vs. leading photon pT histograms for subleading jet, to be filled by GammaJetAnalyzer
+
+    TH2D* fJetEtavsEta_2nd[numHistos];       // jet eta vs. leading photon eta histograms for subleading jet, to be filled by LOOP
+    TH2D* fJetEtavsEta_2nd_gja[numHistos];   // jet eta vs. leading photon eta histograms for subleading jet, to be filled by GammaJetAnalyzer
+
+    TH2D* fJetPhivsPhi_2nd[numHistos];       // jet phi vs. leading photon phi histograms for subleading jet, to be filled by LOOP
+    TH2D* fJetPhivsPhi_2nd_gja[numHistos];   // jet phi vs. leading photon phi histograms for subleading jet, to be filled by GammaJetAnalyzer
+
     for (int i=0; i<numHistos; ++i)
     {
+        // TH1D
+        // photons
         fPt[i] = new TH1D(Form("fPt%s", histoSuffix[i]),"leading photon;p_{T} (GeV)",nBins,0,maxPt);
         fPt_gja[i] = (TH1D*)fPt[i]->Clone(Form("%s_gja",fPt[i]->GetName()));
 
@@ -190,6 +237,7 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
         fPhi_2nd[i] = new TH1D(Form("fPhi_2nd%s", histoSuffix[i]),"subleading photon;#phi",nBins,-maxPhi,maxPhi);
         fPhi_2nd_gja[i] = (TH1D*)fPhi_2nd[i]->Clone(Form("%s_gja",fPhi_2nd[i]->GetName()));
 
+        // jets
         fJetPt[i] = new TH1D(Form("fJetPt%s", histoSuffix[i]),"leading jet;p_{T} (GeV)",nBins,0,maxPt);
         fJetPt_gja[i] = (TH1D*)fJetPt[i]->Clone(Form("%s_gja",fJetPt[i]->GetName()));
 
@@ -204,6 +252,45 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
 
         fJetPhi_2nd[i] = new TH1D(Form("fJetPhi_2nd%s", histoSuffix[i]),"subleading jet;#phi",nBins,-maxPhi,maxPhi);
         fJetPhi_2nd_gja[i] = (TH1D*)fJetPhi_2nd[i]->Clone(Form("%s_gja",fJetPhi_2nd[i]->GetName()));
+
+        // TH2D
+        // photons
+        fPtvsSigmaIetaIeta[i] = new TH2D(Form("fPtvsSigmaIetaIeta%s", histoSuffix[i]),"leading photon;p_{T} (GeV);#sigma_{#eta #eta}",nBins2D,0,maxPt,nBins2D,0,maxSigmaIetaIeta);
+        fPtvsSigmaIetaIeta_gja[i] = (TH2D*)fPtvsSigmaIetaIeta[i]->Clone(Form("%s_gja",fPtvsSigmaIetaIeta[i]->GetName()));
+
+        fPtvsEta[i] = new TH2D(Form("fPtvsEta%s", histoSuffix[i]),"leading photon;p_{T} (GeV);#eta",nBins2D,0,maxPt,nBins2D,-maxEta,maxEta);
+        fPtvsEta_gja[i] = (TH2D*)fPtvsEta[i]->Clone(Form("%s_gja",fPtvsEta[i]->GetName()));
+
+        fPtvsSigmaIetaIeta_2nd[i] = new TH2D(Form("fPtvsSigmaIetaIeta_2nd%s", histoSuffix[i]),"subleading photon;p_{T} (GeV);#sigma_{#eta #eta}",nBins2D,0,maxPt,nBins2D,0,maxSigmaIetaIeta);
+        fPtvsSigmaIetaIeta_2nd_gja[i] = (TH2D*)fPtvsSigmaIetaIeta_2nd[i]->Clone(Form("%s_gja",fPtvsSigmaIetaIeta_2nd[i]->GetName()));
+
+        fPtvsEta_2nd[i] = new TH2D(Form("fPtvsEta_2nd%s", histoSuffix[i]),"subleading photon;p_{T} (GeV);#eta",nBins2D,0,maxPt,nBins2D,-maxEta,maxEta);
+        fPtvsEta_2nd_gja[i] = (TH2D*)fPtvsEta_2nd[i]->Clone(Form("%s_gja",fPtvsEta_2nd[i]->GetName()));
+
+        // jets
+        fJetPtvsEta[i] = new TH2D(Form("fJetPtvsEta%s", histoSuffix[i]),"leading jet;p_{T} (GeV);#eta",nBins2D,0,maxPt,nBins2D,-maxEta,maxEta);
+        fJetPtvsEta_gja[i] = (TH2D*)fJetPtvsEta[i]->Clone(Form("%s_gja",fJetPtvsEta[i]->GetName()));
+
+        fJetPtvsPt[i] = new TH2D(Form("fJetPtvsPt%s", histoSuffix[i]),"leading jet;p_{T}^{Jet} (GeV);p_{T}^{#gamma} (GeV)",nBins2D,0,maxPt,nBins2D,0,maxPt);
+        fJetPtvsPt_gja[i] = (TH2D*)fJetPtvsPt[i]->Clone(Form("%s_gja",fJetPtvsPt[i]->GetName()));
+
+        fJetEtavsEta[i] = new TH2D(Form("fJetEtavsEta%s", histoSuffix[i]),"leading jet;#eta^{Jet};#eta^{#gamma}",nBins2D,-maxEta,maxEta,nBins2D,-maxEta,maxEta);
+        fJetEtavsEta_gja[i] = (TH2D*)fJetEtavsEta[i]->Clone(Form("%s_gja",fJetEtavsEta[i]->GetName()));
+
+        fJetPhivsPhi[i] = new TH2D(Form("fJetPhivsPhi%s", histoSuffix[i]),"leading jet;#phi^{Jet};#phi^{#gamma}",nBins2D,-maxPhi,maxPhi,nBins2D,-maxPhi,maxPhi);
+        fJetPhivsPhi_gja[i] = (TH2D*)fJetPhivsPhi[i]->Clone(Form("%s_gja",fJetPhivsPhi[i]->GetName()));
+
+        fJetPtvsEta_2nd[i] = new TH2D(Form("fJetPtvsEta_2nd%s", histoSuffix[i]),"subleading jet;p_{T} (GeV);#eta",nBins2D,0,maxPt,nBins2D,-maxEta,maxEta);
+        fJetPtvsEta_2nd_gja[i] = (TH2D*)fJetPtvsEta_2nd[i]->Clone(Form("%s_gja",fJetPtvsEta_2nd[i]->GetName()));
+
+        fJetPtvsPt_2nd[i] = new TH2D(Form("fJetPtvsPt_2nd%s", histoSuffix[i]),"subleading jet;p_{T}^{Jet} (GeV);p_{T}^{#gamma} (GeV)",nBins2D,0,maxPt,nBins2D,0,maxPt);
+        fJetPtvsPt_2nd_gja[i] = (TH2D*)fJetPtvsPt_2nd[i]->Clone(Form("%s_gja",fJetPtvsPt_2nd[i]->GetName()));
+
+        fJetEtavsEta_2nd[i] = new TH2D(Form("fJetEtavsEta_2nd%s", histoSuffix[i]),"subleading jet;#eta^{Jet};#eta^{#gamma}",nBins2D,-maxEta,maxEta,nBins2D,-maxEta,maxEta);
+        fJetEtavsEta_2nd_gja[i] = (TH2D*)fJetEtavsEta_2nd[i]->Clone(Form("%s_gja",fJetEtavsEta_2nd[i]->GetName()));
+
+        fJetPhivsPhi_2nd[i] = new TH2D(Form("fJetPhivsPhi_2nd%s", histoSuffix[i]),"subleading jet;#phi^{Jet};#phi^{#gamma}",nBins2D,-maxPhi,maxPhi,nBins2D,-maxPhi,maxPhi);
+        fJetPhivsPhi_2nd_gja[i] = (TH2D*)fJetPhivsPhi_2nd[i]->Clone(Form("%s_gja",fJetPhivsPhi_2nd[i]->GetName()));
     }
 
     std::cout << "GammaJetAnalyzer is being initialized." << std::endl;
@@ -226,6 +313,7 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
     std::clock_t    start_gja, end_gja;
     start_gja = std::clock();
 
+    // TH1D
     // draw leading photon
     gja->drawMax("pt", "pt", "1==1",                              fPt_gja[0]);
     gja->drawMax("pt", "pt", "1==1",             gja->cond_event, fPt_gja[1]);
@@ -314,6 +402,95 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
     gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, cond_eta_spike_iso, gja->cond_event, fJetPhi_2nd_gja[4]);
     gja->drawMaxJet2nd("jtphi", "jtpt", gja->cond_jet, gja->cond_photon,   gja->cond_event, fJetPhi_2nd_gja[5]);
 
+    // TH2D
+    // draw leading photon
+    gja->drawMax("sigmaIetaIeta:pt", "pt", "1==1",                              fPtvsSigmaIetaIeta_gja[0]);
+    gja->drawMax("sigmaIetaIeta:pt", "pt", "1==1",             gja->cond_event, fPtvsSigmaIetaIeta_gja[1]);
+    gja->drawMax("sigmaIetaIeta:pt", "pt", gja->cond_pt_eta,   gja->cond_event, fPtvsSigmaIetaIeta_gja[2]);
+    gja->drawMax("sigmaIetaIeta:pt", "pt", cond_eta_spike,     gja->cond_event, fPtvsSigmaIetaIeta_gja[3]);
+    gja->drawMax("sigmaIetaIeta:pt", "pt", cond_eta_spike_iso, gja->cond_event, fPtvsSigmaIetaIeta_gja[4]);
+    gja->drawMax("sigmaIetaIeta:pt", "pt", gja->cond_photon,   gja->cond_event, fPtvsSigmaIetaIeta_gja[5]);
+
+    gja->drawMax("eta:pt", "pt", "1==1",                              fPtvsEta_gja[0]);
+    gja->drawMax("eta:pt", "pt", "1==1",             gja->cond_event, fPtvsEta_gja[1]);
+    gja->drawMax("eta:pt", "pt", gja->cond_pt_eta,   gja->cond_event, fPtvsEta_gja[2]);
+    gja->drawMax("eta:pt", "pt", cond_eta_spike,     gja->cond_event, fPtvsEta_gja[3]);
+    gja->drawMax("eta:pt", "pt", cond_eta_spike_iso, gja->cond_event, fPtvsEta_gja[4]);
+    gja->drawMax("eta:pt", "pt", gja->cond_photon,   gja->cond_event, fPtvsEta_gja[5]);
+
+    // draw subleading photon
+    gja->drawMax2nd("sigmaIetaIeta:pt", "pt", "1==1",                              fPtvsSigmaIetaIeta_2nd_gja[0]);
+    gja->drawMax2nd("sigmaIetaIeta:pt", "pt", "1==1",             gja->cond_event, fPtvsSigmaIetaIeta_2nd_gja[1]);
+    gja->drawMax2nd("sigmaIetaIeta:pt", "pt", gja->cond_pt_eta,   gja->cond_event, fPtvsSigmaIetaIeta_2nd_gja[2]);
+    gja->drawMax2nd("sigmaIetaIeta:pt", "pt", cond_eta_spike,     gja->cond_event, fPtvsSigmaIetaIeta_2nd_gja[3]);
+    gja->drawMax2nd("sigmaIetaIeta:pt", "pt", cond_eta_spike_iso, gja->cond_event, fPtvsSigmaIetaIeta_2nd_gja[4]);
+    gja->drawMax2nd("sigmaIetaIeta:pt", "pt", gja->cond_photon,   gja->cond_event, fPtvsSigmaIetaIeta_2nd_gja[5]);
+
+    gja->drawMax2nd("eta:pt", "pt", "1==1",                              fPtvsEta_2nd_gja[0]);
+    gja->drawMax2nd("eta:pt", "pt", "1==1",             gja->cond_event, fPtvsEta_2nd_gja[1]);
+    gja->drawMax2nd("eta:pt", "pt", gja->cond_pt_eta,   gja->cond_event, fPtvsEta_2nd_gja[2]);
+    gja->drawMax2nd("eta:pt", "pt", cond_eta_spike,     gja->cond_event, fPtvsEta_2nd_gja[3]);
+    gja->drawMax2nd("eta:pt", "pt", cond_eta_spike_iso, gja->cond_event, fPtvsEta_2nd_gja[4]);
+    gja->drawMax2nd("eta:pt", "pt", gja->cond_photon,   gja->cond_event, fPtvsEta_2nd_gja[5]);
+
+    // draw leading jet
+    gja->drawMaxJet("jteta:jtpt", "jtpt", gja->cond_jet, "nPhotons>0", fJetPtvsEta_gja[0]);
+    gja->drawMaxJet("jteta:jtpt", "jtpt", gja->cond_jet, "nPhotons>0",       gja->cond_event, fJetPtvsEta_gja[1]);
+    gja->drawMaxJet("jteta:jtpt", "jtpt", gja->cond_jet, gja->cond_pt_eta,   gja->cond_event, fJetPtvsEta_gja[2]);
+    gja->drawMaxJet("jteta:jtpt", "jtpt", gja->cond_jet, cond_eta_spike,     gja->cond_event, fJetPtvsEta_gja[3]);
+    gja->drawMaxJet("jteta:jtpt", "jtpt", gja->cond_jet, cond_eta_spike_iso, gja->cond_event, fJetPtvsEta_gja[4]);
+    gja->drawMaxJet("jteta:jtpt", "jtpt", gja->cond_jet, gja->cond_photon,   gja->cond_event, fJetPtvsEta_gja[5]);
+
+    gja->drawMaxJet("PHOTONPT:jtpt", "jtpt", gja->cond_jet, "nPhotons>0", fJetPtvsPt_gja[0]);
+    gja->drawMaxJet("PHOTONPT:jtpt", "jtpt", gja->cond_jet, "nPhotons>0",       gja->cond_event, fJetPtvsPt_gja[1]);
+    gja->drawMaxJet("PHOTONPT:jtpt", "jtpt", gja->cond_jet, gja->cond_pt_eta,   gja->cond_event, fJetPtvsPt_gja[2]);
+    gja->drawMaxJet("PHOTONPT:jtpt", "jtpt", gja->cond_jet, cond_eta_spike,     gja->cond_event, fJetPtvsPt_gja[3]);
+    gja->drawMaxJet("PHOTONPT:jtpt", "jtpt", gja->cond_jet, cond_eta_spike_iso, gja->cond_event, fJetPtvsPt_gja[4]);
+    gja->drawMaxJet("PHOTONPT:jtpt", "jtpt", gja->cond_jet, gja->cond_photon,   gja->cond_event, fJetPtvsPt_gja[5]);
+
+    gja->drawMaxJet("PHOTONETA:jteta", "jtpt", gja->cond_jet, "nPhotons>0", fJetEtavsEta_gja[0]);
+    gja->drawMaxJet("PHOTONETA:jteta", "jtpt", gja->cond_jet, "nPhotons>0",       gja->cond_event, fJetEtavsEta_gja[1]);
+    gja->drawMaxJet("PHOTONETA:jteta", "jtpt", gja->cond_jet, gja->cond_pt_eta,   gja->cond_event, fJetEtavsEta_gja[2]);
+    gja->drawMaxJet("PHOTONETA:jteta", "jtpt", gja->cond_jet, cond_eta_spike,     gja->cond_event, fJetEtavsEta_gja[3]);
+    gja->drawMaxJet("PHOTONETA:jteta", "jtpt", gja->cond_jet, cond_eta_spike_iso, gja->cond_event, fJetEtavsEta_gja[4]);
+    gja->drawMaxJet("PHOTONETA:jteta", "jtpt", gja->cond_jet, gja->cond_photon,   gja->cond_event, fJetEtavsEta_gja[5]);
+
+    gja->drawMaxJet("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, "nPhotons>0", fJetPhivsPhi_gja[0]);
+    gja->drawMaxJet("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, "nPhotons>0",       gja->cond_event, fJetPhivsPhi_gja[1]);
+    gja->drawMaxJet("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, gja->cond_pt_eta,   gja->cond_event, fJetPhivsPhi_gja[2]);
+    gja->drawMaxJet("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, cond_eta_spike,     gja->cond_event, fJetPhivsPhi_gja[3]);
+    gja->drawMaxJet("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, cond_eta_spike_iso, gja->cond_event, fJetPhivsPhi_gja[4]);
+    gja->drawMaxJet("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, gja->cond_photon,   gja->cond_event, fJetPhivsPhi_gja[5]);
+
+    // draw subleading jet
+    gja->drawMaxJet2nd("jteta:jtpt", "jtpt", gja->cond_jet, "nPhotons>0", fJetPtvsEta_2nd_gja[0]);
+    gja->drawMaxJet2nd("jteta:jtpt", "jtpt", gja->cond_jet, "nPhotons>0",       gja->cond_event, fJetPtvsEta_2nd_gja[1]);
+    gja->drawMaxJet2nd("jteta:jtpt", "jtpt", gja->cond_jet, gja->cond_pt_eta,   gja->cond_event, fJetPtvsEta_2nd_gja[2]);
+    gja->drawMaxJet2nd("jteta:jtpt", "jtpt", gja->cond_jet, cond_eta_spike,     gja->cond_event, fJetPtvsEta_2nd_gja[3]);
+    gja->drawMaxJet2nd("jteta:jtpt", "jtpt", gja->cond_jet, cond_eta_spike_iso, gja->cond_event, fJetPtvsEta_2nd_gja[4]);
+    gja->drawMaxJet2nd("jteta:jtpt", "jtpt", gja->cond_jet, gja->cond_photon,   gja->cond_event, fJetPtvsEta_2nd_gja[5]);
+
+    gja->drawMaxJet2nd("PHOTONPT:jtpt", "jtpt", gja->cond_jet, "nPhotons>0", fJetPtvsPt_2nd_gja[0]);
+    gja->drawMaxJet2nd("PHOTONPT:jtpt", "jtpt", gja->cond_jet, "nPhotons>0",       gja->cond_event, fJetPtvsPt_2nd_gja[1]);
+    gja->drawMaxJet2nd("PHOTONPT:jtpt", "jtpt", gja->cond_jet, gja->cond_pt_eta,   gja->cond_event, fJetPtvsPt_2nd_gja[2]);
+    gja->drawMaxJet2nd("PHOTONPT:jtpt", "jtpt", gja->cond_jet, cond_eta_spike,     gja->cond_event, fJetPtvsPt_2nd_gja[3]);
+    gja->drawMaxJet2nd("PHOTONPT:jtpt", "jtpt", gja->cond_jet, cond_eta_spike_iso, gja->cond_event, fJetPtvsPt_2nd_gja[4]);
+    gja->drawMaxJet2nd("PHOTONPT:jtpt", "jtpt", gja->cond_jet, gja->cond_photon,   gja->cond_event, fJetPtvsPt_2nd_gja[5]);
+
+    gja->drawMaxJet2nd("PHOTONETA:jteta", "jtpt", gja->cond_jet, "nPhotons>0", fJetEtavsEta_2nd_gja[0]);
+    gja->drawMaxJet2nd("PHOTONETA:jteta", "jtpt", gja->cond_jet, "nPhotons>0",       gja->cond_event, fJetEtavsEta_2nd_gja[1]);
+    gja->drawMaxJet2nd("PHOTONETA:jteta", "jtpt", gja->cond_jet, gja->cond_pt_eta,   gja->cond_event, fJetEtavsEta_2nd_gja[2]);
+    gja->drawMaxJet2nd("PHOTONETA:jteta", "jtpt", gja->cond_jet, cond_eta_spike,     gja->cond_event, fJetEtavsEta_2nd_gja[3]);
+    gja->drawMaxJet2nd("PHOTONETA:jteta", "jtpt", gja->cond_jet, cond_eta_spike_iso, gja->cond_event, fJetEtavsEta_2nd_gja[4]);
+    gja->drawMaxJet2nd("PHOTONETA:jteta", "jtpt", gja->cond_jet, gja->cond_photon,   gja->cond_event, fJetEtavsEta_2nd_gja[5]);
+
+    gja->drawMaxJet2nd("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, "nPhotons>0", fJetPhivsPhi_2nd_gja[0]);
+    gja->drawMaxJet2nd("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, "nPhotons>0",       gja->cond_event, fJetPhivsPhi_2nd_gja[1]);
+    gja->drawMaxJet2nd("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, gja->cond_pt_eta,   gja->cond_event, fJetPhivsPhi_2nd_gja[2]);
+    gja->drawMaxJet2nd("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, cond_eta_spike,     gja->cond_event, fJetPhivsPhi_2nd_gja[3]);
+    gja->drawMaxJet2nd("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, cond_eta_spike_iso, gja->cond_event, fJetPhivsPhi_2nd_gja[4]);
+    gja->drawMaxJet2nd("PHOTONPHI:jtphi", "jtpt", gja->cond_jet, gja->cond_photon,   gja->cond_event, fJetPhivsPhi_2nd_gja[5]);
+
     end_gja = std::clock();
     std::cout << "GammaJetAnalyzer is making plots : DONE" << std::endl;
 
@@ -343,6 +520,7 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
         float max_photon_2nd_pt[numHistos];
         float max_photon_2nd_sigmaIetaIeta[numHistos];
         float max_photon_2nd_phi[numHistos];
+        float max_photon_2nd_eta[numHistos];
         for(int i=0; i<numHistos; ++i)  {
             max_photon_index[i] = -1;
             max_photon_pt[i] = -1;
@@ -352,6 +530,7 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
             max_photon_2nd_pt[i] = -1;
             max_photon_2nd_sigmaIetaIeta[i] = -998;
             max_photon_2nd_phi[i] = -999;
+            max_photon_2nd_eta[i] = -999;
         }
 
         bool passed[numHistos];
@@ -391,6 +570,7 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
                     max_photon_2nd_pt[k] = photon_pt[i];
                     max_photon_2nd_sigmaIetaIeta[k] = sigmaIetaIeta[i];
                     max_photon_2nd_phi[k] = photon_phi[i];
+                    max_photon_2nd_eta[k] = photon_eta[i];
                 }
                 // check if this photon is leading photon
                 if (photon_pt[i] > max_photon_pt[k]     && passed[k])   {
@@ -398,6 +578,7 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
                     max_photon_2nd_pt[k] = max_photon_pt[k];
                     max_photon_2nd_sigmaIetaIeta[k] = max_photon_sigmaIetaIeta[k];
                     max_photon_2nd_phi[k] = max_photon_phi[k];
+                    max_photon_2nd_eta[k] = max_photon_eta[k];
 
                     max_photon_index[k] = i;
                     max_photon_pt[k] = photon_pt[i];
@@ -411,15 +592,19 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
         int max_jet_index[numHistos];
         float max_jet_pt[numHistos];
         float max_jet_phi[numHistos];
+        float max_jet_eta[numHistos];
         float max_jet_2nd_pt[numHistos];
         float max_jet_2nd_phi[numHistos];
+        float max_jet_2nd_eta[numHistos];
         for(int i=0; i<numHistos; ++i)
         {
             max_jet_index[i] = -1;
             max_jet_pt[i] = -1;
             max_jet_phi[i] = -999;
+            max_jet_eta[i] = -999;
             max_jet_2nd_pt[i] = -1;
             max_jet_2nd_phi[i] = -999;
+            max_jet_2nd_eta[i] = -999;
         }
 
         for(int i=0; i<nJet; ++i)
@@ -443,6 +628,7 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
 
                     max_jet_2nd_pt[k]  = jet_pt[i];
                     max_jet_2nd_phi[k] = jet_phi[i];
+                    max_jet_2nd_eta[k] = jet_eta[i];
                 }
                 // check if this jet is leading jet
                 if (jet_pt[i] > max_jet_pt[k]     && passed_jet
@@ -451,16 +637,19 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
                     // current leading jet becomes subleading jet
                     max_jet_2nd_pt[k]  = max_jet_pt[k];
                     max_jet_2nd_phi[k] = max_jet_phi[k];
+                    max_jet_2nd_eta[k] = max_jet_eta[k];
 
                     max_jet_index[k] = i;
                     max_jet_pt[k]  = jet_pt[i];
                     max_jet_phi[k] = jet_phi[i];
+                    max_jet_eta[k] = jet_eta[i];
                 }
             }
         }
 
         // fill histograms for different selections
         for(int i=0; i<numHistos; ++i) {
+            // TH1D
             // leading photon
             if(max_photon_index[i]>-1) {
                 fPt[i]->Fill(max_photon_pt[i]);
@@ -485,6 +674,35 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
                 fJetPt_2nd[i]->Fill(max_jet_2nd_pt[i]);
                 fJetPhi_2nd[i]->Fill(max_jet_2nd_phi[i]);
             }
+
+            //TH2D
+            // leading photon
+            if(max_photon_index[i]>-1) {
+                fPtvsSigmaIetaIeta[i]->Fill(max_photon_pt[i],max_photon_sigmaIetaIeta[i]);
+                fPtvsEta[i]->Fill(max_photon_pt[i],max_photon_eta[i]);
+            }
+
+            // subleading photon
+            if(max_photon_2nd_pt[i]>-1) {
+                fPtvsSigmaIetaIeta_2nd[i]->Fill(max_photon_2nd_pt[i],max_photon_2nd_sigmaIetaIeta[i]);
+                fPtvsEta_2nd[i]->Fill(max_photon_2nd_pt[i],max_photon_2nd_eta[i]);
+            }
+
+            // leading jet
+            if(max_jet_index[i]>-1) {
+                fJetPtvsEta[i]->Fill(max_jet_pt[i],max_jet_eta[i]);
+                fJetPtvsPt[i]->Fill(max_jet_pt[i],max_photon_pt[i]);
+                fJetEtavsEta[i]->Fill(max_jet_eta[i],max_photon_eta[i]);
+                fJetPhivsPhi[i]->Fill(max_jet_phi[i],max_photon_phi[i]);
+            }
+
+            // subleading jet
+            if(max_jet_2nd_pt[i]>-1) {
+                fJetPtvsEta_2nd[i]->Fill(max_jet_2nd_pt[i], max_jet_2nd_eta[i]);
+                fJetPtvsPt_2nd[i]->Fill(max_jet_2nd_pt[i],max_photon_pt[i]);
+                fJetEtavsEta_2nd[i]->Fill(max_jet_2nd_eta[i],max_photon_eta[i]);
+                fJetPhivsPhi_2nd[i]->Fill(max_jet_2nd_phi[i],max_photon_phi[i]);
+            }
         }
     }
     end_loop = std::clock();
@@ -493,6 +711,7 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
     std::cout << "LOOP made plots in             : " << (end_loop - start_loop) / (double)CLOCKS_PER_SEC << " seconds" << std::endl;
 
     // compare histograms
+    // TH1D
     bool histogramsAreSame_fPt[numHistos];
     bool histogramsAreSame_fSigmaIetaIeta[numHistos];
     bool histogramsAreSame_fPhi[numHistos];
@@ -500,13 +719,29 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
     bool histogramsAreSame_fPt_2nd[numHistos];
     bool histogramsAreSame_fSigmaIetaIeta_2nd[numHistos];
     bool histogramsAreSame_fPhi_2nd[numHistos];
+
     bool histogramsAreSame_fJetPt[numHistos];
     bool histogramsAreSame_fJetPhi[numHistos];
     bool histogramsAreSame_fJetIndex[numHistos];
     bool histogramsAreSame_fJetPt_2nd[numHistos];
     bool histogramsAreSame_fJetPhi_2nd[numHistos];
+    // TH2D
+    bool histogramsAreSame_fPtvsSigmaIetaIeta[numHistos];
+    bool histogramsAreSame_fPtvsEta[numHistos];
+    bool histogramsAreSame_fPtvsSigmaIetaIeta_2nd[numHistos];
+    bool histogramsAreSame_fPtvsEta_2nd[numHistos];
+
+    bool histogramsAreSame_fJetPtvsEta[numHistos];
+    bool histogramsAreSame_fJetPtvsPt[numHistos];
+    bool histogramsAreSame_fJetEtavsEta[numHistos];
+    bool histogramsAreSame_fJetPhivsPhi[numHistos];
+    bool histogramsAreSame_fJetPtvsEta_2nd[numHistos];
+    bool histogramsAreSame_fJetPtvsPt_2nd[numHistos];
+    bool histogramsAreSame_fJetEtavsEta_2nd[numHistos];
+    bool histogramsAreSame_fJetPhivsPhi_2nd[numHistos];
     for(int i = 0; i<numHistos; ++i)
     {
+        // TH1D
         // leading photon
         histogramsAreSame_fPt[i]=compareHistograms(fPt[i],fPt_gja[i]);
         std::cout << "comparison of " << fPt[i]->GetName() << " = " << histogramsAreSame_fPt[i] <<std::endl;
@@ -546,12 +781,54 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
 
         histogramsAreSame_fJetPhi_2nd[i]=compareHistograms(fJetPhi_2nd[i],fJetPhi_2nd_gja[i]);
         std::cout << "comparison of " << fJetPhi_2nd[i]->GetName() << " = " << histogramsAreSame_fJetPhi_2nd[i] <<std::endl;
+
+        // TH2D
+        // leading photon
+        histogramsAreSame_fPtvsSigmaIetaIeta[i]=compareHistograms(fPtvsSigmaIetaIeta[i],fPtvsSigmaIetaIeta_gja[i]);
+        std::cout << "comparison of " << fPtvsSigmaIetaIeta[i]->GetName() << " = " << histogramsAreSame_fPtvsSigmaIetaIeta[i] <<std::endl;
+
+        histogramsAreSame_fPtvsEta[i]=compareHistograms(fPtvsEta[i],fPtvsEta_gja[i]);
+        std::cout << "comparison of " << fPtvsEta[i]->GetName() << " = " << histogramsAreSame_fPtvsEta[i] <<std::endl;
+
+        // subleading photon
+        histogramsAreSame_fPtvsSigmaIetaIeta_2nd[i]=compareHistograms(fPtvsSigmaIetaIeta_2nd[i],fPtvsSigmaIetaIeta_2nd_gja[i]);
+        std::cout << "comparison of " << fPtvsSigmaIetaIeta_2nd[i]->GetName() << " = " << histogramsAreSame_fPtvsSigmaIetaIeta_2nd[i] <<std::endl;
+
+        histogramsAreSame_fPtvsEta_2nd[i]=compareHistograms(fPtvsEta_2nd[i],fPtvsEta_2nd_gja[i]);
+        std::cout << "comparison of " << fPtvsEta_2nd[i]->GetName() << " = " << histogramsAreSame_fPtvsEta_2nd[i] <<std::endl;
+
+        // leading jet
+        histogramsAreSame_fJetPtvsEta[i]=compareHistograms(fJetPtvsEta[i],fJetPtvsEta_gja[i]);
+        std::cout << "comparison of " << fJetPtvsEta[i]->GetName() << " = " << histogramsAreSame_fJetPtvsEta[i] <<std::endl;
+
+        histogramsAreSame_fJetPtvsPt[i]=compareHistograms(fJetPtvsPt[i],fJetPtvsPt_gja[i]);
+        std::cout << "comparison of " << fJetPtvsPt[i]->GetName() << " = " << histogramsAreSame_fJetPtvsPt[i] <<std::endl;
+
+        histogramsAreSame_fJetEtavsEta[i]=compareHistograms(fJetEtavsEta[i],fJetEtavsEta_gja[i]);
+        std::cout << "comparison of " << fJetEtavsEta[i]->GetName() << " = " << histogramsAreSame_fJetEtavsEta[i] <<std::endl;
+
+        histogramsAreSame_fJetPhivsPhi[i]=compareHistograms(fJetPhivsPhi[i],fJetPhivsPhi_gja[i]);
+        std::cout << "comparison of " << fJetPhivsPhi[i]->GetName() << " = " << histogramsAreSame_fJetPhivsPhi[i] <<std::endl;
+
+        // subleading jet
+        histogramsAreSame_fJetPtvsEta_2nd[i]=compareHistograms(fJetPtvsEta_2nd[i],fJetPtvsEta_2nd_gja[i]);
+        std::cout << "comparison of " << fJetPtvsEta_2nd[i]->GetName() << " = " << histogramsAreSame_fJetPtvsEta_2nd[i] <<std::endl;
+
+        histogramsAreSame_fJetPtvsPt_2nd[i]=compareHistograms(fJetPtvsPt_2nd[i],fJetPtvsPt_2nd_gja[i]);
+        std::cout << "comparison of " << fJetPtvsPt_2nd[i]->GetName() << " = " << histogramsAreSame_fJetPtvsPt_2nd[i] <<std::endl;
+
+        histogramsAreSame_fJetEtavsEta_2nd[i]=compareHistograms(fJetEtavsEta_2nd[i],fJetEtavsEta_2nd_gja[i]);
+        std::cout << "comparison of " << fJetEtavsEta_2nd[i]->GetName() << " = " << histogramsAreSame_fJetEtavsEta_2nd[i] <<std::endl;
+
+        histogramsAreSame_fJetPhivsPhi_2nd[i]=compareHistograms(fJetPhivsPhi_2nd[i],fJetPhivsPhi_2nd_gja[i]);
+        std::cout << "comparison of " << fJetPhivsPhi_2nd[i]->GetName() << " = " << histogramsAreSame_fJetPhivsPhi_2nd[i] <<std::endl;
     }
 
     // save histograms
     outputFile->cd();
     for(int i = 0; i<numHistos; ++i)
     {
+        // TH1D
         // leading photon
         fPt[i]->Write();
         fPt_gja[i]->Write();
@@ -591,6 +868,47 @@ void test_GammaJetAnalyzer(const char* inputfileName , const char* outputFileNam
 
         fJetPhi_2nd[i]->Write();
         fJetPhi_2nd_gja[i]->Write();
+
+        // TH2D
+        // leading photon
+        fPtvsSigmaIetaIeta[i]->Write();
+        fPtvsSigmaIetaIeta_gja[i]->Write();
+
+        fPtvsEta[i]->Write();
+        fPtvsEta_gja[i]->Write();
+
+        // subleading photon
+        fPtvsSigmaIetaIeta_2nd[i]->Write();
+        fPtvsSigmaIetaIeta_2nd_gja[i]->Write();
+
+        fPtvsEta_2nd[i]->Write();
+        fPtvsEta_2nd_gja[i]->Write();
+
+        // leading jet
+        fJetPtvsEta[i]->Write();
+        fJetPtvsEta_gja[i]->Write();
+
+        fJetPtvsPt[i]->Write();
+        fJetPtvsPt_gja[i]->Write();
+
+        fJetEtavsEta[i]->Write();
+        fJetEtavsEta_gja[i]->Write();
+
+        fJetPhivsPhi[i]->Write();
+        fJetPhivsPhi_gja[i]->Write();
+
+        // subleading jet
+        fJetPtvsEta_2nd[i]->Write();
+        fJetPtvsEta_2nd_gja[i]->Write();
+
+        fJetPtvsPt_2nd[i]->Write();
+        fJetPtvsPt_2nd_gja[i]->Write();
+
+        fJetEtavsEta_2nd[i]->Write();
+        fJetEtavsEta_2nd_gja[i]->Write();
+
+        fJetPhivsPhi_2nd[i]->Write();
+        fJetPhivsPhi_2nd_gja[i]->Write();
     }
     outputFile->Close();
     inputFile->Close();

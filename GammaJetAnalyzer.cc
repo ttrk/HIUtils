@@ -247,6 +247,7 @@ void GammaJetAnalyzer::drawMaxJet(TString jetFormula, TString formulaForJetMax, 
     elist->SetName("eventlistMax_Photons");     // prevent duplicate names in the current directory
     tree->SetEventList(elist);
 
+    tree->SetAlias("PHOTONPT",  Form("Max$(pt*(%s))", cond_photon.Data()));
     tree->SetAlias("PHOTONPHI", Form("Sum$(phi*(pt == Max$(pt*(%s))))", cond_photon.Data()));
     tree->SetAlias("PHOTONETA", Form("Sum$(eta*(pt == Max$(pt*(%s))))", cond_photon.Data()));
 
@@ -267,6 +268,7 @@ void GammaJetAnalyzer::drawMaxJet2nd(TString jetFormula, TString formulaForJetMa
     elist->SetName("eventlistMax_Photons");     // prevent duplicate names in the current directory
     tree->SetEventList(elist);
 
+    tree->SetAlias("PHOTONPT",  Form("Max$(pt*(%s))", cond_photon.Data()));
     tree->SetAlias("PHOTONPHI", Form("Sum$(phi*(pt == Max$(pt*(%s))))", cond_photon.Data()));
     tree->SetAlias("PHOTONETA", Form("Sum$(eta*(pt == Max$(pt*(%s))))", cond_photon.Data()));
 
