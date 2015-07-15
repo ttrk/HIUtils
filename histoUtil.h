@@ -92,17 +92,29 @@ int getNumBins(double xmin, double xmax, int numBinsPerUnitX)
  * */
 bool compareHistograms(TH1* h1, TH1* h2)
 {
-	int numBins=h1->GetNbinsX();
-	if(numBins != h2->GetNbinsX())
+	int numBinsX = h1->GetNbinsX();
+	if(numBinsX != h2->GetNbinsX())
 		return false;
 
-	for(int i=0; i<=numBins+1; i++)
-	{
-		if(h1->GetBinContent(i) != h2->GetBinContent(i))
-			return false;
-		if(h1->GetBinError(i) != h2->GetBinError(i))
-		    return false;
-	}
+    int numBinsY = h1->GetNbinsY();
+    if(numBinsY != h2->GetNbinsY())
+        return false;
+
+    int numBinsZ = h1->GetNbinsZ();
+    if(numBinsZ != h2->GetNbinsZ())
+        return false;
+
+    for(int i=0; i<=numBinsX+1; ++i){
+        for(int j=0; j<=numBinsY+1; ++j){
+            for(int k=0; k<=numBinsZ+1; ++k){
+
+                if(h1->GetBinContent(i,j,k) != h2->GetBinContent(i,j,k))
+                    return false;
+                if(h1->GetBinError(i,j,k) != h2->GetBinError(i,j,k))
+                    return false;
+            }
+        }
+    }
 	return true;
 }
 
