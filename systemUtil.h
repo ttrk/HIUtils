@@ -1,7 +1,5 @@
 /*
- * systemUtils.h
- *
- *  Created on: Mar 19, 2015
+ * utilities related to system operations
  */
 
 #ifndef SYSTEMUTIL_H_
@@ -58,7 +56,6 @@ TList* getFileNamesList(const char* dirname /* ="." */, const char* ext /* ="" *
       while ((file=(TSystemFile*)next())) {
          fname = new TObjString(file->GetName());
          if (fname->GetString().EndsWith(ext)) {
-//            cout << fname->GetString().Data() << endl;
             	outFileNames->Add(fname);
          }
       }

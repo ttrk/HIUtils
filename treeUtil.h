@@ -1,6 +1,5 @@
 /*
  * utilities related to TTree objects.
- *
  */
 
 #ifndef TREEUTIL_H_

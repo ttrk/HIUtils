@@ -15,8 +15,10 @@
 #include <TCanvas.h>
 #include <TSystem.h>
 #include <TGraph.h>
+#include <TH2D.h>
 
 #include <iostream>
+#include <vector>
 #include <math.h>
 
 void     mergeCuts(TCut cut, TCut* cuts, int len);
@@ -25,12 +27,14 @@ int      getNumBins(double xmin, double xmax, int numBinsPerUnitX);
 bool     compareHistograms(TH1* h1, TH1* h2);
 TList*   divideHistogramList(TList* histoList1   , TList* histoList2,    int rebinFactor=1, bool DoScale=true);
 TList*   divideHistogramList(TDirectoryFile* dir1, TDirectoryFile* dir2, int rebinFactor=1, bool DoScale=true);
-TList*   getListOfSOMEKeys(TDirectoryFile* dir, const char* pattern);
-TList*   getListOfSOMEKeys(TDirectoryFile* dir, const char* pattern, const char* type);
+TList*   getListOfSOMEKeys (TDirectoryFile* dir, const char* pattern);
+TList*   getListOfSOMEKeys (TDirectoryFile* dir, const char* pattern, const char* type);
+TList*   getListOfGIVENKeys(TDirectoryFile* dir, std::vector<std::string> keyNames);
 TList*   getListOfALLKeys (TDirectoryFile* dir);
 TList*   getListOfALLKeys (TDirectoryFile* dir, const char* type);
 TList*   getListOfALLKeys (TDirectoryFile* dir, const char* type, bool inheritsFrom);
-TList*   getListOfHistograms   (TDirectoryFile* dir, const char* pattern="");
+TList*   getListOfHistograms     (TDirectoryFile* dir, const char* pattern="");
+TList*   getListOfGIVENHistograms(TDirectoryFile* dir, std::vector<std::string> histoNames);
 TList*   getListOfALLHistograms(TDirectoryFile* dir);
 void     saveAllHistogramsToFile(const char* fileName, TList* histos);
 void     saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType="gif", const char* directoryToBeSavedIn="", int styleIndex=0, int rebin=1);
@@ -136,9 +140,6 @@ TList* divideHistogramList(TList* histoList1, TList* histoList2, int rebinFactor
 		h1=(TH1D*)histoList1->At(i);
 		h2=(TH1D*)histoList2->At(i);
 
-//		cout<<h1->GetNbinsX()<<endl;
-//		cout<<h2->GetNbinsX()<<endl;
-
 		if (rebinFactor != 1)
 		{
 			h1->Rebin(rebinFactor);
@@ -151,12 +152,7 @@ TList* divideHistogramList(TList* histoList1, TList* histoList2, int rebinFactor
 			h2->Scale(1/(h2->GetEntries()));
 		}
 
-//		cout<<h1->GetNbinsX()<<endl;
-//		cout<<h2->GetNbinsX()<<endl;
-
 		h_division=(TH1D*)h1->Clone(h1->GetName());
-//		h_division=new TH1D(h1->GetName(),h1->GetTitle(),h1->GetNbinsX(),h1->GetXaxis()->GetXmin(),h1->GetXaxis()->GetXmax());
-//		h_division=new TH1D();
 		h_division->Divide(h1,h2);
 		h_division->SetName(Form("%s_ratio",h1->GetName()));
 		h_division->SetTitle(Form("ratio of %s",h1->GetTitle()));
@@ -212,7 +208,6 @@ TList* getListOfSOMEKeys(TDirectoryFile* dir, const char* pattern)
     return keys;
 }
 
-
 /*
  * get list of all keys under a directory "dir" for objects of a given "type" and whose name contains "pattern"
  * type    = "" means any type   , hence getListOfSOMEKeys(dir, pattern, "") is the same as getListOfSOMEKeys(dir, pattern).
@@ -245,6 +240,44 @@ TList* getListOfSOMEKeys(TDirectoryFile* dir, const char* pattern, const char* t
             keys->AddAll(newKeys);
         }
     }
+    return keys;
+}
+
+/*
+ * get list of all keys under a directory "dir" where key names are listed in "keyNames"
+ */
+TList* getListOfGIVENKeys(TDirectoryFile* dir, std::vector<std::string> keyNames)
+{
+    TList* keysInDir = dir->GetListOfKeys();
+    TIter* iter = new TIter(keysInDir);
+
+    TDirectoryFile *subdir;
+    TKey*  key;
+    TList* keys=new TList();
+    TList* newKeys=new TList();
+    TString keyName;
+
+
+    while ((key=(TKey*)iter->Next())) {
+
+        keyName=key->GetName();
+        for (std::vector<std::string>::iterator itergivenNames = keyNames.begin() ; itergivenNames != keyNames.end(); ++itergivenNames){
+            std::string givenName = (std::string)(*itergivenNames);
+            if(keyName.EqualTo(givenName.data()))
+            {
+                keys->Add(key);
+            }
+        }
+
+        // traverse directories in a DFS manner (recursively)
+        if(key->IsFolder())
+        {
+            subdir=(TDirectoryFile*)key->ReadObj();
+            newKeys=getListOfGIVENKeys(subdir, keyNames);
+            keys->AddAll(newKeys);
+        }
+    }
+
     return keys;
 }
 
@@ -353,6 +386,24 @@ TList* getListOfHistograms(TDirectoryFile* dir, const char* pattern /* ="" */ )
 {
     TList* histos=new TList();
     TList* keysHisto = getListOfSOMEKeys(dir, pattern, "TH1D");
+
+    TIter* iter = new TIter(keysHisto);
+    TKey*  key;
+    while ((key=(TKey*)iter->Next()))
+    {
+        histos->Add((TH1D*)key->ReadObj());
+    }
+
+    return histos;
+}
+
+/*
+ * get list of histograms under a directory "dir" where histogram names are listed in "histoNames"
+ */
+TList* getListOfGIVENHistograms(TDirectoryFile* dir, std::vector<std::string> histoNames)
+{
+    TList* histos=new TList();
+    TList* keysHisto = getListOfGIVENKeys(dir, histoNames);
 
     TIter* iter = new TIter(keysHisto);
     TKey*  key;
@@ -479,10 +530,10 @@ void saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType /* ="g
     }
     else if(dirType==3)
     {
-//11          TSystem* sys=new TSystem();
+//        TSystem* sys=new TSystem();
           TString dirName(dir->GetName());
           dirName.ReplaceAll(".root","");
-//11          sys->mkdir(dirName,true);     // does not work. must override "int MakeDirectory(const char* name)"
+//          sys->mkdir(dirName,true);     // does not work. must override "int MakeDirectory(const char* name)"
           gSystem->mkdir(dirName,true);
           directoryToBeSavedIn=dirName;
     }
@@ -563,10 +614,10 @@ void saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType /* ="gif" 
     }
     else if(dirType==3)
     {
-//11          TSystem* sys=new TSystem();
+//        TSystem* sys=new TSystem();
           TString dirName(dir->GetName());
           dirName.ReplaceAll(".root","");
-//11          sys->mkdir(dirName,true);     // does not work. must override "int MakeDirectory(const char* name)"
+//          sys->mkdir(dirName,true);     // does not work. must override "int MakeDirectory(const char* name)"
           gSystem->mkdir(dirName,true);
           directoryToBeSavedIn=dirName;
     }
@@ -593,6 +644,81 @@ void saveAllCanvasesToPicture(TList* canvases, const char* fileType /* ="gif" */
         }
     }
 //  c->Close();
+}
+
+/*
+ * for all histograms in "histos1" and "histos2", plot the histograms with the same indices onto the same TCanvas.
+ */
+TList* drawSame(TList* histos1, TList* histos2)
+{
+    TList* canvasList = new TList();
+
+    TH1D* h1;
+    TH1D* h2;
+    TCanvas* c;
+    TIter* iter1 = new TIter(histos1);
+    TIter* iter2 = new TIter(histos2);
+    while((h1=(TH1D*)iter1->Next())) {
+        h2=(TH1D*)iter2->Next();
+
+        // default plotting options
+        h1->SetMarkerStyle(kFullSquare);
+        h2->SetMarkerStyle(kFullCircle);
+
+        h1->SetMarkerColor(kBlack);
+        h2->SetMarkerColor(kRed);
+
+        h2->SetMarkerSize(h1->GetMarkerSize()*0.8);     // to distinguish between points when they overlap
+
+        c=new TCanvas(h1->GetName());
+        c->Clear();     // clear changes coming from the previous canvas
+
+        h1->Draw("e");
+        h2->Draw("e SAME");
+
+        // set Y-axis ranges
+        // default Y-axis range is that of h1
+        // make sure that both plots will not run out of y-axis
+        double max1 = h1->GetMaximum();
+        double max2 = h2->GetMaximum();
+        double min1 = h1->GetMinimum();
+        double min2 = h2->GetMinimum();
+
+        if (max2 > max1)
+            h1->SetMaximum(max2+TMath::Abs(max2)*0.2);
+
+        if (min2 < min1)
+            h1->SetMinimum(min2-TMath::Abs(min2)*0.2);
+
+        // special cases
+        // TO DO
+
+        canvasList->Add(c);
+    }
+
+    return canvasList;
+}
+
+/*
+ * plot list of 2D histograms in "histos" onto TCanvas list.
+ */
+TList* draw2D(TList* histos)
+{
+    TList* canvasList = new TList();
+
+    TH2D* h;
+    TCanvas* c;
+    TIter* iter = new TIter(histos);
+    while((h=(TH2D*)iter->Next())) {
+
+        c=new TCanvas(h->GetName());
+
+        h->Draw("colz");
+
+        canvasList->Add(c);
+    }
+
+    return canvasList;
 }
 
 #endif /* HISTOUTIL_H_ */

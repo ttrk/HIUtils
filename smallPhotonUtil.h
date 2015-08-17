@@ -1,3 +1,7 @@
+/*
+ * utilities related to photon physics
+ */
+
 #ifndef SMALLPHOTONUTIL_H_
 #define SMALLPHOTONUTIL_H_
 
@@ -6,8 +10,8 @@
 
 #include <iostream>
 
-Double_t getDR( Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2);
-Double_t getDPHI( Double_t phi1, Double_t phi2);
+Double_t getDR(Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2);
+Double_t getDPHI(Double_t phi1, Double_t phi2);
 Double_t getDETA(Double_t eta1, Double_t eta2);
 
 using  std::cout;
