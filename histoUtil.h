@@ -42,6 +42,8 @@ void     saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType="g
 void     saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType="gif", const char* directoryToBeSavedIn="", int styleIndex=0);
 void     saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType="gif", int dirType=0                      , int styleIndex=0);
 void     saveAllCanvasesToPicture(TList* canvases      , const char* fileType="gif", const char* directoryToBeSavedIn="");
+TList*   drawSame(TList* histos1, TList* histos2);
+TList*   draw2D(TList* histos);
 
 using  std::cout;
 using  std::endl;

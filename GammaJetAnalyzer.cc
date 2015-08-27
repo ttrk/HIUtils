@@ -164,8 +164,8 @@ void GammaJetAnalyzer::updateJetSelections() {
     // simplest expression so far to get the correct abs(dphi_photon_jet)
     // "dphi_photon_jet" does not necessarily give the correct delta phi between photon and jet
     // But "abs(dphi_photon_jet)" gives the correct abs(delta phi) between photon and jet
-    dphi_photon_jet = "(abs(PHOTONPHI-jtphi) + (abs(PHOTONPHI-jtphi) > 3.141592653589)*(-6.283185307178))";
-    deta = "(PHOTONETA-jteta)";
+    dphi_photon_jet = "(abs(MAXPHOTONPHI-jtphi) + (abs(MAXPHOTONPHI-jtphi) > 3.141592653589)*(-6.283185307178))";
+    deta = "(MAXPHOTONETA-jteta)";
     dR = Form("sqrt((%s)^2 + (%s)^2)", dphi_photon_jet.Data(), deta.Data());
 
     cond_jet_dphi   = Form("abs(%s) >= %f", dphi_photon_jet.Data(), cut_jet_photon_deltaPhi);
@@ -220,6 +220,25 @@ void GammaJetAnalyzer::updateEventList(TString condition){
     tree->SetEventList(eventlist);
 }
 
+void GammaJetAnalyzer::setAliases(TString cond_photon, TString cond_jet)
+{
+    tree->SetAlias(alias_photon_pt,  Form("pt*(%s)", cond_photon.Data()));
+    tree->SetAlias(alias_photon_eta, Form("eta*(%s)", cond_photon.Data()));
+    tree->SetAlias(alias_photon_phi, Form("phi*(%s)", cond_photon.Data()));
+
+    tree->SetAlias(alias_maxphoton_pt,  Form("Max$(pt*(%s))", cond_photon.Data()));
+    tree->SetAlias(alias_maxphoton_eta, Form("Sum$(eta*(pt == Max$(pt*(%s))))", cond_photon.Data()));
+    tree->SetAlias(alias_maxphoton_phi, Form("Sum$(phi*(pt == Max$(pt*(%s))))", cond_photon.Data()));
+
+    tree->SetAlias(alias_jet_pt,  Form("jtpt*(%s)",  cond_jet.Data()));
+    tree->SetAlias(alias_jet_eta, Form("jteta*(%s)", cond_jet.Data()));
+    tree->SetAlias(alias_jet_phi, Form("jtphi*(%s)", cond_jet.Data()));
+
+    tree->SetAlias(alias_maxjet_pt,  Form("Max$(jtpt*(%s))", cond_jet.Data()));
+    tree->SetAlias(alias_maxjet_eta, Form("Sum$(jteta*(jtpt == Max$(jtpt*(%s))))", cond_jet.Data()));
+    tree->SetAlias(alias_maxjet_phi, Form("Sum$(jtphi*(jtpt == Max$(jtpt*(%s))))", cond_jet.Data()));
+}
+
 void GammaJetAnalyzer::drawMax(TString formula, TString formulaForMax, TString condition, TH1* hist){
     drawMaximumGeneral(tree, formula, formulaForMax, condition, hist);
 }
@@ -247,9 +266,7 @@ void GammaJetAnalyzer::drawMaxJet(TString jetFormula, TString formulaForJetMax, 
     elist->SetName("eventlistMax_Photons");     // prevent duplicate names in the current directory
     tree->SetEventList(elist);
 
-    tree->SetAlias("PHOTONPT",  Form("Max$(pt*(%s))", cond_photon.Data()));
-    tree->SetAlias("PHOTONPHI", Form("Sum$(phi*(pt == Max$(pt*(%s))))", cond_photon.Data()));
-    tree->SetAlias("PHOTONETA", Form("Sum$(eta*(pt == Max$(pt*(%s))))", cond_photon.Data()));
+    setAliases(cond_photon, "1");
 
     drawMaximumGeneral(tree, jetFormula, formulaForJetMax, cond, hist);
 
@@ -268,14 +285,67 @@ void GammaJetAnalyzer::drawMaxJet2nd(TString jetFormula, TString formulaForJetMa
     elist->SetName("eventlistMax_Photons");     // prevent duplicate names in the current directory
     tree->SetEventList(elist);
 
-    tree->SetAlias("PHOTONPT",  Form("Max$(pt*(%s))", cond_photon.Data()));
-    tree->SetAlias("PHOTONPHI", Form("Sum$(phi*(pt == Max$(pt*(%s))))", cond_photon.Data()));
-    tree->SetAlias("PHOTONETA", Form("Sum$(eta*(pt == Max$(pt*(%s))))", cond_photon.Data()));
+    setAliases(cond_photon, "1");
 
     drawMaximum2ndGeneral(tree, jetFormula, formulaForJetMax, cond, hist);
 
     tree->SetEventList(eventlist);      // restore the original event list after making the histogram
     elist->Delete();
+}
+
+void GammaJetAnalyzer::drawPhotonJet(TString formula, TString cond_photon, TString cond_jet, TString selection, TH1* hist)
+{
+    drawPhotonJet(formula, cond_photon, cond_jet, selection, "1", hist);
+}
+
+void GammaJetAnalyzer::drawPhotonJet(TString formula, TString cond_photon, TString cond_jet, TString selection, TString cut, TH1* hist)
+{
+
+    const char* histName="h_drawPhotonJet";
+    if(hist!=NULL)
+    {
+       histName = hist->GetName();
+    }
+
+    drawPhotonJet(formula, cond_photon, cond_jet, selection, cut, histName);
+}
+
+void GammaJetAnalyzer::drawPhotonJet(TString formula, TString cond_photon, TString cond_jet, TString selection, TString histName)
+{
+    drawPhotonJet(formula, cond_photon, cond_jet, selection, "1", histName);
+}
+
+/*
+ * selection = object (photon, jet, ...) selection applied in the drawing step. Do not merge selection for different objects into "selection",
+ * because this will take the binary "AND" of these different selections.
+ * Example : selection = cond_photon && cond_jet
+ * Say normally photons at indices 1, 3 pass "cond_photon" and jets at indices 0, 2 "pass cond_jet".
+ * In that case no photon or jet passes "selection".
+ * "selection" must contain selections for at most one object
+ * and should better be used for selection of a "list", not a single object.
+ */
+void GammaJetAnalyzer::drawPhotonJet(TString formula, TString cond_photon, TString cond_jet, TString selection, TString cut, TString histName)
+{
+    const char* eventlist_name="eventlistPhotonJet";
+    tree->Draw(Form(">> %s", eventlist_name), Form("Max$(%s)>0 && Max$(%s)>0 && %s",cond_photon.Data() ,cond_jet.Data() ,cut.Data()));
+    // why use "Max$(%s)>0" instead of "%s"
+    // conditions for photon and jet should not be binary "AND"ed. Evaluate photon and jet conditions separately.
+    TEventList* elist = (TEventList*)gDirectory->Get(eventlist_name);
+    tree->SetEventList(elist);
+
+    setAliases(cond_photon, cond_jet);
+    tree->Draw(Form("%s >> %s", formula.Data(), histName.Data()), selection.Data());
+
+    tree->SetEventList(eventlist);      // restore the original event list after making the histogram
+    elist->Delete();
+}
+
+// construct formula for a specific deltaR (photon, jet)
+TString GammaJetAnalyzer::constructFormula_dR(TString eta1, TString phi1, TString eta2, TString phi2)
+{
+    TString dphi = Form("(abs(%s-%s) + (abs(%s-%s) > 3.141592653589)*(-6.283185307178))", phi1.Data(), phi2.Data(), phi1.Data(), phi2.Data());
+    TString deta = Form("(%s-%s)",eta1.Data(), eta2.Data());
+    return Form("sqrt((%s)^2 + (%s)^2)", dphi.Data(), deta.Data());
 }
 
 // no need to use "static" keyword in function definition after it has been used in function declaration

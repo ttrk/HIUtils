@@ -12,6 +12,7 @@
 #include <TString.h>
 #include <TTree.h>
 #include <TEventList.h>
+#include <TH1D.h>
 #include <TMath.h>
 
 #include <iostream>
@@ -62,6 +63,24 @@ const float jet_photon_deltaR = 0.4;
 const float jet_photon_deltaPhi = PI * 7./8.;
 ////////// default cuts for jets // END ///
 
+////////// aliases //////////
+// photon aliases - alias photons that satisfy a condition
+const char* alias_photon_pt  = "PHOTONPT";
+const char* alias_photon_eta = "PHOTONETA";
+const char* alias_photon_phi = "PHOTONPHI";
+// photon aliases - alias for the photon with maximum pT among the photons that satisfy a condition
+const char* alias_maxphoton_pt  = "MAXPHOTONPT";
+const char* alias_maxphoton_eta = "MAXPHOTONETA";
+const char* alias_maxphoton_phi = "MAXPHOTONPHI";
+// jet aliases - alias for jets that satisfy a condition
+const char* alias_jet_pt   = "JETPT";
+const char* alias_jet_eta  = "JETETA";
+const char* alias_jet_phi  = "JETPHI";
+// jet aliases - alias for the jet with maximum pT among the jets that satisfy a condition
+const char* alias_maxjet_pt   = "MAXJETPT";
+const char* alias_maxjet_eta  = "MAXJETETA";
+const char* alias_maxjet_phi  = "MAXJETPHI";
+
 class GammaJetAnalyzer {
 private:
     TTree* ak3PFJetTree;        // for pp events
@@ -93,6 +112,7 @@ public:
     void updateEventList();
     void resetEventList();
     void updateEventList(TString condition);
+    void setAliases(TString cond_photon = "1", TString cond_jet = "1");
     // draw kinematics
     void drawMax   (TString formula, TString formulaForMax, TString condition = "1", TH1* hist = NULL);
     void drawMax   (TString formula, TString formulaForMax, TString condition = "1", TString cut = "1", TH1* hist = NULL);
@@ -103,7 +123,13 @@ public:
     void drawMaxJet   (TString jetFormula, TString formulaForJetMax, TString cond = "1", TString cond_photon = "1", TString cut = "1", TH1* hist = NULL);
     void drawMaxJet2nd(TString jetFormula, TString formulaForJetMax, TString cond = "1", TString cond_photon = "1", TH1* hist = NULL);
     void drawMaxJet2nd(TString jetFormula, TString formulaForJetMax, TString cond = "1", TString cond_photon = "1", TString cut = "1", TH1* hist = NULL);
-
+    // draw photon-jet kinematics/correlations
+    void drawPhotonJet(TString formula, TString cond_photon = "1", TString cond_jet = "1", TString selection = "1", TH1* hist = NULL);
+    void drawPhotonJet(TString formula, TString cond_photon = "1", TString cond_jet = "1", TString selection = "1", TString cut = "1", TH1* hist = NULL);
+    void drawPhotonJet(TString formula, TString cond_photon = "1", TString cond_jet = "1", TString selection = "1", TString histName = "h_drawPhotonJet");
+    void drawPhotonJet(TString formula, TString cond_photon = "1", TString cond_jet = "1", TString selection = "1", TString cut = "1", TString histName = "h_drawPhotonJet");
+    // construct strings
+    TString constructFormula_dR(TString eta1 = alias_maxphoton_eta, TString phi1 = alias_maxphoton_phi, TString eta2 = alias_maxjet_eta, TString phi2 = alias_maxjet_phi);
     // merge cuts
     static TString mergeSelections(TString sel1, TString sel2);
 
