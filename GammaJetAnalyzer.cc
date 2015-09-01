@@ -10,17 +10,19 @@ GammaJetAnalyzer::GammaJetAnalyzer() {
 
 }
 
-GammaJetAnalyzer::GammaJetAnalyzer(TFile* hiForestFile) {
+GammaJetAnalyzer::GammaJetAnalyzer(TFile* hiForestFile, collisionType coll) {
 
     this->hiForestFile = hiForestFile;
+    collision = coll;
 
     Constructor();
 }
 
 
-GammaJetAnalyzer::GammaJetAnalyzer(TString hiForestFileName) {
+GammaJetAnalyzer::GammaJetAnalyzer(TString hiForestFileName, collisionType coll) {
 
     this->hiForestFile = new TFile(hiForestFileName.Data());
+    collision = coll;
 
     Constructor();
 }
@@ -41,7 +43,12 @@ void GammaJetAnalyzer::Constructor(){
     tree = evtTree;
     tree->AddFriend(skimTree,"HltTree");
     tree->AddFriend(photonTree,"photon");
-    setJetTree(akPu3PFJets);     // default jets are akPu3PFJets
+    if (collision == PP) {
+        setJetTree(ak3PFJets);
+    }
+    else {
+        setJetTree(akPu3PFJets);
+    }
 
     resetCuts();
     updateSelections();
@@ -92,6 +99,7 @@ void GammaJetAnalyzer::resetCuts(){
     cut_ecalIso = ecalIso;
     cut_hcalIso = hcalIso;
     cut_trackIso = trackIso;
+    cut_sumIso  = sumIso;
     cut_hadronicOverEm = hadronicOverEm;
     // purity enhancement
     cut_sigmaIetaIeta_lt = sigmaIetaIeta_lt;
@@ -138,9 +146,19 @@ void GammaJetAnalyzer::updatePhotonSelections() {
     cond_spike +=Form(" && sigmaIetaIeta > %f", cut_sigmaIetaIeta_gt);
     cond_spike +=Form(" && sigmaIphiIphi > %f", cut_sigmaIphiIphi);
 
-    cond_iso = Form("ecalRecHitSumEtConeDR04 < %f", cut_ecalIso);
-    cond_iso +=Form(" && hcalTowerSumEtConeDR04 < %f", cut_hcalIso);
-    cond_iso +=Form(" && trkSumPtHollowConeDR04 < %f", cut_trackIso);
+    cond_iso_noHI = Form("ecalRecHitSumEtConeDR04 < %f", cut_ecalIso);
+    cond_iso_noHI +=Form(" && hcalTowerSumEtConeDR04 < %f", cut_hcalIso);
+    cond_iso_noHI +=Form(" && trkSumPtHollowConeDR04 < %f", cut_trackIso);
+
+    cond_iso_HI = Form("(cr4 + cc4 + ct4PtCut20)/0.9 < %f", cut_sumIso);
+
+
+    if(collision == PP || collision == PA) {
+        cond_iso = cond_iso_noHI.Data();
+    }
+    else {
+        cond_iso = cond_iso_HI.Data();
+    }
     cond_iso +=Form(" && hadronicOverEm < %f", cut_hadronicOverEm);
 
     cond_purity = Form("sigmaIetaIeta < %f", cut_sigmaIetaIeta_lt);

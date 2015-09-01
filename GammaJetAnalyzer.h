@@ -26,6 +26,12 @@ enum jetType {
     akPu3PFJets
 };
 
+enum collisionType {
+    PP,
+    PA,
+    HI
+};
+
 ////////// default cuts for event //////////
 const float vz = 15;
 const int hiBin_gt = -1;
@@ -46,9 +52,10 @@ const float sigmaIetaIeta_gt = 0.002;
 const float swissCross = 0.9;
 const float seedTime = 3;
 // Isolation
-const float ecalIso = 4.2;
-const float hcalIso = 2.2;
-const float trackIso = 2.0;
+const float ecalIso = 4.2;     // for pp or pA events
+const float hcalIso = 2.2;     // for pp or pA events
+const float trackIso = 2.0;    // for pp or pA events
+const float sumIso   = 1.0;    // for HI events, sumIso = cr4 + cc4 + ct4PtCut20
 const float hadronicOverEm = 0.1;
 // purity enhancement
 const float sigmaIetaIeta_lt = 0.01;
@@ -101,8 +108,8 @@ private:
 
 public:
     GammaJetAnalyzer();
-    GammaJetAnalyzer(TFile* hiForestFile);
-    GammaJetAnalyzer(TString hiForestFileName);
+    GammaJetAnalyzer(TFile* hiForestFile, collisionType coll = HI);
+    GammaJetAnalyzer(TString hiForestFileName, collisionType coll = HI);
     void setJetTree(jetType jet);
     virtual ~GammaJetAnalyzer();
 
@@ -145,6 +152,9 @@ public:
     // Histograms
     TH1D* h;
 
+    // collision info
+    collisionType collision;
+
     ////////// cuts for event //////////
     float cut_vz;                               // evtTree
     int cut_hiBin_gt;                           // evtTree  : centrality for HI events
@@ -164,9 +174,10 @@ public:
     float cut_sigmaIetaIeta_gt;
     float cut_sigmaIphiIphi;
     // Isolation
-    float cut_ecalIso;
-    float cut_hcalIso;
-    float cut_trackIso;
+    float cut_ecalIso;      // for pp or pA events
+    float cut_hcalIso;      // for pp or pA events
+    float cut_trackIso;     // for pp or pA events
+    float cut_sumIso;       // for HI events,  sumIso = cr4 + cc4 + ct4PtCut20
     float cut_hadronicOverEm;
     // purity enhancement
     float cut_sigmaIetaIeta_lt;
@@ -200,6 +211,8 @@ public:
     TString cond_pt_eta;    // cond_pt + cond_eta
     TString cond_spike;
     TString cond_iso;
+    TString cond_iso_noHI;  // for pp or pA events
+    TString cond_iso_HI;    // for HI events
     TString cond_purity;
     TString cond_isEle;     // not included in cond_photon
     ////////// selections for jets //////////
