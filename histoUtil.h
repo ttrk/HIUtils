@@ -16,6 +16,7 @@
 #include <TSystem.h>
 #include <TGraph.h>
 #include <TH2D.h>
+#include <TGraphAsymmErrors.h>
 
 #include <iostream>
 #include <vector>
@@ -44,6 +45,7 @@ void     saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType="gif",
 void     saveAllCanvasesToPicture(TList* canvases      , const char* fileType="gif", const char* directoryToBeSavedIn="");
 TList*   drawSame(TList* histos1, TList* histos2);
 TList*   draw2D(TList* histos);
+TH1*     Graph2Histogram(TGraphAsymmErrors graph);
 
 using  std::cout;
 using  std::endl;
@@ -721,6 +723,43 @@ TList* draw2D(TList* histos)
     }
 
     return canvasList;
+}
+
+/*
+ * convert a TGraphAsymmErrors to 1D TH1 by setting the data points bin by bin.
+ * NOTE : cannot set the asymmetric error bars for TH1. So cannot carry over the asymmetric errors
+ * in "graph" to the histogram that is returned.
+ * The error in the histogram will be
+ * TMath::Sqrt(0.5*(elow*elow + ehigh*ehigh))  which is returned by graph->GetErrorY(i)
+ * https://root.cern.ch/root/html/src/TGraphAsymmErrors.cxx.html#rBLO5D
+ */
+TH1* Graph2Histogram(TGraphAsymmErrors* graph)
+{
+    int fNpoints = graph->GetN();
+    double* fX   = graph->GetX();
+    double* fY   = graph->GetY();
+
+    if (fNpoints == 0) {
+        return NULL;
+    }
+
+    // prepare x-bins for the histograms
+    // xbins  : array of low-edges for each bin
+    //          This is an array of size nbins+1
+    double xbins[fNpoints+1];
+    for (int i=0; i<fNpoints; ++i)  {
+        xbins[i]=fX[i]-graph->GetErrorXlow(i);
+    }
+    xbins[fNpoints]=fX[fNpoints-1]+graph->GetErrorXhigh(fNpoints-1);
+
+    TH1* h = new TH1D(graph->GetName(),graph->GetTitle(), fNpoints, xbins);
+
+    for (int i=0; i<fNpoints; ++i)  {
+        h->SetBinContent(i+1, fY[i]);
+        h->SetBinError(i+1, graph->GetErrorY(i));
+    }
+
+    return h;
 }
 
 #endif /* HISTOUTIL_H_ */
