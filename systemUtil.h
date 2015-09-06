@@ -14,13 +14,12 @@
 #include <vector>
 #include <string>
 #include <iostream>
-
+#include <fstream>      // ifstream, ofstream
 
 TList*                   getFileNamesList(const char* dirname=".", const char* ext="");
-std::vector<std::string> getFileNames    (const char* dirname=".", const char* ext="");
-
-using  std::cout;
-using  std::endl;
+std::vector<std::string> getFileNames    (const char* dirName=".", const char* ext="", bool recursive = false);
+int                      replaceStringInFile(const char* file, std::string oldString, std::string newString);
+std::string              replaceAll(std::string str, std::string oldString, std::string newString);
 
 /*
  * get a list files and folders in the given directory
@@ -60,37 +59,93 @@ TList* getFileNamesList(const char* dirname /* ="." */, const char* ext /* ="" *
          }
       }
    }
-   else
-   {
-	   cout << "no files with given extension found in : " << dirname << endl;
-   }
 
    return outFileNames;
 }
 
-std::vector<std::string> getFileNames(const char* dirname /* ="." */, const char* ext /* ="" */)
+std::vector<std::string> getFileNames(const char* dirName, const char* ext, bool recursive)
 {
-	TSystemDirectory dir(dirname, dirname);
-	TList* files = dir.GetListOfFiles();
-	std::vector<std::string> outFileNames;
-	if (files) {
-		TSystemFile *file;
-		TString fname;
-		TIter next(files);
-		while ((file=(TSystemFile*)next())) {
-			fname = file->GetName();
-			if (fname.EndsWith(ext)) {
-				outFileNames.push_back(fname.Data());
-			}
-		}
-	}
-	else
-	{
-		cout << "no files with given extension found in : " << dirname << endl;
-	}
+    std::string dirNameStr = dirName;
+    const char* dirName2   = dirNameStr.c_str();  // looks dummy, but very important.
+    // if dirName is used, things may get messed up in the recursion step.
 
-	return outFileNames;
+    TSystemDirectory dir(dirName, dirName);
+    TList* files = dir.GetListOfFiles();
+    std::vector<std::string> outFileNames;
+
+    if (files) {
+        TSystemFile* file;
+        TString fname;
+        TIter next(files);
+        while ((file=(TSystemFile*)next())) {
+
+            fname = file->GetName();
+            const char* fnameChar = fname.Data();
+
+            if (strcmp(fnameChar, ".") == 0 || strcmp(fnameChar, "..") == 0)    continue;
+
+            if(recursive && file->IsFolder())
+            {
+                const char* subdirname = Form("%s/%s", dirName2, fnameChar);
+
+                std::vector<std::string> outFileNamesTmp = getFileNames(subdirname, ext, true);
+                for (std::vector<std::string>::iterator it = outFileNamesTmp.begin() ; it != outFileNamesTmp.end(); ++it)
+                {
+                    outFileNames.push_back(Form("%s/%s",fnameChar,(*it).c_str()));
+                }
+            }
+            else if (fname.EndsWith(ext) && !file->IsFolder()) {
+                outFileNames.push_back(fnameChar);
+            }
+
+        }
+        files->Delete();
+    }
+
+    return outFileNames;
 }
 
+/*
+ * replace each occurence of "oldString" in file "filePath" with "newString"
+ */
+int replaceStringInFile(const char* file, std::string oldString, std::string newString)
+{
+    ifstream inFile(file);      // file to be updated
+    const char* tmpFilePath = Form("%sTEMP", file);
+    ofstream outFile(tmpFilePath);  // temporary output file
+
+    std::string strLine;
+    if (inFile.is_open() && outFile.is_open())
+    {
+        while( getline(inFile,strLine))
+        {
+            std::string  newStrLine = replaceAll(strLine, oldString, newString);
+            outFile << newStrLine << "\n";
+        }
+    }
+
+    inFile.close();
+    outFile.close();
+
+    // overwrite the original file.
+    return rename(tmpFilePath , file);
+}
+
+/*
+ * replace each occurence of "oldString" in string "str" with "newString"
+ * http://stackoverflow.com/questions/3418231/replace-part-of-a-string-with-another-string/3418285#3418285
+ */
+std::string replaceAll(std::string str, std::string oldString, std::string newString)
+{
+    if(str.empty())
+        return str;
+
+    size_t pos = 0;
+    while ((pos = str.find(oldString, pos)) != std::string::npos) {
+        str.replace(pos, oldString.length(), newString);
+        pos += newString.length();
+    }
+    return str;
+}
 
 #endif /* SYSTEMUTIL_H_ */
