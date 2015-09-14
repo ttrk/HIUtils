@@ -2,7 +2,7 @@
  * modify the "import" statements in CMSSW modules
  * so that Python interpreter can resolve them.
  *
- * CMSSW has the convetion that the folder "python" is omitted
+ * CMSSW has the convention that the folder "python" is omitted
  * in import statements.
  *
  * This code inserts an intermediate directory called "python"

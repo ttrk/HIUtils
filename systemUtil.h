@@ -18,6 +18,7 @@
 
 TList*                   getFileNamesList(const char* dirname=".", const char* ext="");
 std::vector<std::string> getFileNames    (const char* dirName=".", const char* ext="", bool recursive = false);
+bool                     fileExists(const char *filename);
 int                      replaceStringInFile(const char* file, std::string oldString, std::string newString);
 std::string              replaceAll(std::string str, std::string oldString, std::string newString);
 
@@ -103,6 +104,21 @@ std::vector<std::string> getFileNames(const char* dirName, const char* ext, bool
     }
 
     return outFileNames;
+}
+
+/*
+ * just check if the file exists. better use this short function to check existence of a file,
+ * it makes sure that the "ifstream" object is alive only within the scope of the function.
+ *
+ * http://www.cplusplus.com/forum/general/1796/ :
+ *
+ * "return statement should cast the file object to a boolean which is true if the file exists.
+ * The file is automatically closed at the end of the function scope."
+ * */
+bool fileExists(const char *filename)
+{
+  ifstream file(filename);
+  return file;
 }
 
 /*
