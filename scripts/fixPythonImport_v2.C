@@ -123,10 +123,12 @@ int fixImport(const char* filePath, const char* dirName)
                 std::size_t foundStart = strLine.rfind(importedPathStart, keyPosLast);
                 // imported path ends with the first whitespace after the "."
                 std::size_t foundEnd   = strLine.find(importedPathEnd, keyPosLast);
+                if (foundEnd == std::string::npos)  // there may not be a whitespace after the imported module
+                    foundEnd = strLine.length();
 
                 std::string importedPath;
                 std::string importedPathFile;
-                if (foundStart!=std::string::npos && foundEnd!=std::string::npos) {
+                if (foundStart!=std::string::npos) {
                     std::size_t len = foundEnd-foundStart-1;
                     importedPath = strLine.substr (foundStart+1, len);
                     importedPaths.push_back(importedPath);
@@ -171,10 +173,12 @@ int fixImport(const char* filePath, const char* dirName)
                    std::size_t foundStart = strLine.rfind(importedPathStart, keyPosLast);
                    // imported path ends with the first whitespace after the "."
                    std::size_t foundEnd   = strLine.find(importedPathEnd, keyPosLast);
+                   if (foundEnd == std::string::npos)  // there may not be a whitespace after the imported module
+                       foundEnd = strLine.length();
 
                    std::string importedPath;
                    std::string importedPathFile;
-                   if (foundStart!=std::string::npos && foundEnd!=std::string::npos) {
+                   if (foundStart!=std::string::npos) {
                        std::size_t len = foundEnd-foundStart-1;
                        importedPath = strLine.substr (foundStart+1, len);
                        // importedPaths.push_back(importedPath);
