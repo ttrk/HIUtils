@@ -13,6 +13,7 @@
 #include <TFile.h>
 
 #include <cstdarg>      // for functions which take a variable number of arguments.
+#include <iostream>     // std::cout
 
 void drawMaximumGeneral   (TTree* tree, TString formula, TString formulaForMax, TString conditionForMax = "1", TH1* hist = NULL);
 void drawMaximumGeneral   (TTree* tree, TString formula, TString formulaForMax, TString conditionForMax = "1", TString cut = "1", TH1* hist = NULL);
