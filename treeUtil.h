@@ -25,6 +25,12 @@ TEventList* getMaximum2ndEventList(TTree* tree, TString formulaForMax, TString c
 
 bool compareTrees(TTree* tree1, TTree* tree2, int lenBranchNames = 0, const char* branchNames[] = NULL);
 bool compareTrees(TFile* file1, const char* tree1Path, TFile* file2, const char* tree2Path, int lenBranchNames = 0, const char* branchNames[] = NULL);
+int  compareTreesVerbose(TTree* tree1, TTree* tree2, int lenBranchNames = 0, const char* branchNames[] = NULL, bool verbose = false);
+int  compareTreesVerbose(TFile* file1, const char* tree1Path, TFile* file2, const char* tree2Path, int lenBranchNames = 0, const char* branchNames[] = NULL, bool verbose = false);
+/// DISCOURAGED
+bool compareTrees(TTree* tree1, TTree* tree2, std::string selection1 = "1", std::string selection2 = "1",
+                  int lenBranchNames = 0, const char* branchNames[] = NULL );
+/// DISCOURAGED - END
 
 TString mergeCuts(TString cut1, TString cut2);
 TString mergeCuts2(int nCuts, ...);
@@ -405,17 +411,16 @@ bool compareTrees(TTree* tree1, TTree* tree2, int lenBranchNames, const char* br
     }
     // the array "branches" has been set.
 
-    int notEqual=0;
     TString selection;
     for(int i=0; i<len; ++i)
     {
         selection = Form("abs(%s - %s.%s)>0", branches[i], alias, branches[i]);
-        notEqual = tree1->GetEntries(selection.Data());
+        int notEqual = tree1->GetEntries(selection.Data());
         if(notEqual>0)
         {
 /*
             // report
-            std::cout<< "branch = " << branches[i] << "is not same." << " different entries = " << notEqual <<std::endl;
+            std::cout<< "branch is not same : " << branches[i] << ", different entries = " << notEqual <<std::endl;
 */
             return false;
         }
@@ -424,12 +429,222 @@ bool compareTrees(TTree* tree1, TTree* tree2, int lenBranchNames, const char* br
     return true;
 }
 
-bool compareTrees(TFile* file1, const char* tree1Path, TFile* file2, const char* tree2Path, int lenBranchNames, const char* branchNames[])
+bool compareTrees(TFile* file1, const char* tree1Path, TFile* file2, const char* tree2Path,
+                  int lenBranchNames, const char* branchNames[])
 {
     TTree *t1 = (TTree*)file1->Get(tree1Path);
     TTree *t2 = (TTree*)file2->Get(tree2Path);
 
     return compareTrees(t1, t2, lenBranchNames, branchNames);
+}
+
+/*
+ * general function to compare "TTree"s. A comparison is based on a list of branches.
+ * this is more detailed version of function
+ * bool compareTrees(TTree* tree1, TTree* tree2, int lenBranchNames, const char* branchNames[])
+ *
+ * returns the number of branches that are not same.
+ *
+ * If a list of branches is given then the comparison will be based on that list.
+ * If no list is given, the comparison will be based on all the branches. In that case tree1 and tree2 must have the same number of branches.
+ *
+ * if "verbose" is true, then for each branch that are not same,
+ *                       it prints the number entries where these branches differ.
+ *
+ * */
+int compareTreesVerbose(TTree* tree1, TTree* tree2, int lenBranchNames, const char* branchNames[], bool verbose)
+{
+    TString aliasStr = Form("%s_2",tree1->GetName());
+    const char* alias = aliasStr.Data();
+    tree1->AddFriend(tree2, alias);   // "tree2" will be referred with "alias"
+
+    bool useAll = false;
+    TObjArray* branchList = tree1->GetListOfBranches();
+
+    int differentBranches = 0;
+    if(lenBranchNames==0)
+    {
+        // do comparison over all the branches
+        useAll=true;
+
+        lenBranchNames = branchList->GetSize();
+
+        if(lenBranchNames != tree2->GetListOfBranches()->GetSize())    // tree1 and tree2 must have the same number of branches
+        {
+            if (verbose)
+            {
+                std::cout<<"tree1 and tree2 must have the same number of branches" <<std::endl;
+                std::cout<<"tree1, number of branches = " << lenBranchNames <<std::endl;
+                std::cout<<"tree2, number of branches = " << tree2->GetListOfBranches()->GetSize() <<std::endl;
+            }
+            differentBranches = abs(lenBranchNames - tree2->GetListOfBranches()->GetSize());
+            return differentBranches;
+        }
+    }
+
+    const int len = lenBranchNames;     // use a "const" variable for array dimension to avoid the following error in a ROOT session
+                                        // Error: Non-static-const variable in array dimension
+    const char* branches[len];
+    // set the array "branches"
+    // comparison will be based on this list of branches.
+    if(useAll) {
+        for(int i=0 ; i<len; ++i)
+        {
+            branches[i]=branchList->At(i)->GetName();
+        }
+    }
+    else {
+        for(int i=0 ; i<len; ++i)
+        {
+            branches[i]=branchNames[i];
+        }
+    }
+    // the array "branches" has been set.
+
+    TString selection;
+    for(int i=0; i<len; ++i)
+    {
+        selection = Form("abs(%s - %s.%s)>0", branches[i], alias, branches[i]);
+        int notEqual = tree1->GetEntries(selection.Data());
+        if(notEqual>0)
+        {
+            differentBranches++;
+            if (verbose) {
+                // report
+                std::cout<< "branch not same : " << branches[i] << ", different entries = " << notEqual <<std::endl;
+            }
+        }
+        else if (notEqual == 0)
+        {
+            if (verbose) {
+                // report
+                std::cout<< "branch is same  : " << branches[i] <<std::endl;
+            }
+        }
+    }
+
+    return differentBranches;
+}
+
+int compareTreesVerbose(TFile* file1, const char* tree1Path, TFile* file2, const char* tree2Path,
+                        int lenBranchNames, const char* branchNames[], bool verbose)
+{
+    TTree *t1 = (TTree*)file1->Get(tree1Path);
+    TTree *t2 = (TTree*)file2->Get(tree2Path);
+
+    return compareTreesVerbose(t1, t2, lenBranchNames, branchNames, verbose);
+}
+
+/*
+ * WARNING : this version is significantly slower than other versions of the function
+ *
+ * general function to compare "TTree"s. A comparison is based on a list of branches
+ * and given selections on tree entries.
+ *
+ * returns false if comparison does not succeed
+ *
+ * If a list of branches is given then the comparison will be based on that list.
+ * If no list is given, the comparison will be based on all the branches. In that case tree1 and tree2 must have the same number of branches.
+ *
+ * selection1(2) : selection that picks entries from Tree1(2)
+ *                 if the entries from the two trees are not in the same order, then
+ *                 make sure "selection" picks not more than two entries, otherwise comparison order may be wrong.
+ *
+ *                 if the entries from the two trees are in the same order, then
+ *                 "selection" can pick any number of entries.
+ * */
+/// DISCOURAGED
+bool compareTrees(TTree* tree1, TTree* tree2, std::string selection1, std::string selection2,
+                  int lenBranchNames, const char* branchNames[])
+{
+        bool useAll = false;
+        TObjArray* branchList = tree1->GetListOfBranches();
+
+        if(lenBranchNames==0)
+        {
+            // do comparison over all the branches
+            useAll=true;
+
+            lenBranchNames = branchList->GetSize();
+
+            if(lenBranchNames != tree2->GetListOfBranches()->GetSize())    // tree1 and tree2 must have the same number of branches
+            {
+                return false;
+            }
+        }
+
+        const int len = lenBranchNames;     // use a "const" variable for array dimension to avoid the following error in a ROOT session
+                                            // Error: Non-static-const variable in array dimension
+        const char* branches[len];
+        // set the array "branches"
+        // comparison will be based on this list of branches.
+        if(useAll) {
+            for(int i=0 ; i<len; ++i)
+            {
+                branches[i]=branchList->At(i)->GetName();
+            }
+        }
+        else {
+            for(int i=0 ; i<len; ++i)
+            {
+                branches[i]=branchNames[i];
+            }
+        }
+        // the array "branches" has been set.
+
+        for(int i=0; i<len; ++i)
+        {
+            tree1->Draw(Form("%s", branches[i]), selection1.c_str());
+            tree2->Draw(Form("%s", branches[i]), selection2.c_str());
+
+            Long64_t selected1 = tree1->GetSelectedRows();
+            Long64_t selected2 = tree2->GetSelectedRows();
+
+            Double_t* values1 = tree1->GetV1();
+            Double_t* values2 = tree2->GetV1();
+
+            /*
+            // report
+            std::cout << "branch    = " << branches[i] << std::endl;
+            std::cout << "selected1 = " << selected1 << std::endl;
+            std::cout << "selected2 = " << selected2 << std::endl;
+            */
+
+            if (selected1 != selected2)
+            {
+                /*
+                // report
+                std::cout<< "branch = " << branches[i] << "is not same." <<std::endl;
+                std::cout<< "selected1 = " << selected1 <<std::endl;
+                std::cout<< "selected2 = " << selected2 <<std::endl;
+                */
+
+                return false;
+            }
+
+            for (int j=0; j<selected1; ++j)
+            {
+                /*
+                // report
+                std::cout << "values1[j] = " << values1[j] << std::endl;
+                std::cout << "values2[j] = " << values2[j] << std::endl;
+                 */
+                if (values1[j] != values2[j])
+                {
+                    /*
+                    // report
+                    std::cout<< "branch = " << branches[i] << "is not same." <<std::endl;
+                    std::cout<< "selected elements = " << selected1 <<std::endl;
+                    std::cout << "values1[j] = " << values1[j] << std::endl;
+                    std::cout << "values2[j] = " << values2[j] << std::endl;
+                    */
+
+                    return false;
+                }
+            }
+        }
+
+        return true;
 }
 
 TString mergeCuts(TString cut1, TString cut2)
