@@ -11,9 +11,12 @@
 #include <TEventList.h>
 #include <TH1.h>
 #include <TFile.h>
+#include <TTreeIndex.h>
+#include <TMath.h>
 
-#include <cstdarg>      // for functions which take a variable number of arguments.
-#include <iostream>     // std::cout
+#include <cstdarg>       // for functions which take a variable number of arguments.
+#include <iostream>      // std::cout
+#include <algorithm>     // std::sort, std::generate
 
 void drawMaximumGeneral   (TTree* tree, TString formula, TString formulaForMax, TString conditionForMax = "1", TH1* hist = NULL);
 void drawMaximumGeneral   (TTree* tree, TString formula, TString formulaForMax, TString conditionForMax = "1", TString cut = "1", TH1* hist = NULL);
@@ -32,9 +35,13 @@ bool compareTrees(TTree* tree1, TTree* tree2, std::string selection1 = "1", std:
                   int lenBranchNames = 0, const char* branchNames[] = NULL );
 /// DISCOURAGED - END
 
+void sortTree(TTree* inputTree, TTree* outputTree, Long64_t sortedEntries[], Long64_t lenEntries);
+void sortTree(TTree* inputTree, TTree* outputTree, const std::vector<Long64_t>& sortedEntries);
+void sortTree     (TTree* inputTree, TTree* outputTree, const char* branchName, const char* selection = "1", bool decreasing = false);
+void sortTreeTMath(TTree* inputTree, TTree* outputTree, const char* branchName, const char* selection = "1", bool decreasing = false);
+
 TString mergeCuts(TString cut1, TString cut2);
 TString mergeCuts2(int nCuts, ...);
-
 
 /// DEPRECATED
 void drawMaximum(TTree* tree, TString formula, TString condition = "1", TH1* hist = NULL, bool plotZero = false);
@@ -44,6 +51,7 @@ void drawMaximum2nd(TTree* tree, TString formula, TString condition = "1", TStri
 TEntryList* getMaximumEntryList   (TTree* tree, TString formulaForMax, TString conditionForMax = "1", TString cut = "1");
 TEntryList* getMaximum2ndEntryList(TTree* tree, TString formulaForMax, TString conditionForMax = "1", TString cut = "1");
 TEntryListArray* getMaximumEntryListArray(TTree* tree, TString formulaForMax, TString conditionForMax = "1", TString cut = "1");
+void sortTree2(TTree* inputTree, TTree* outputTree, const char* branchName, bool decreasing = false);
 /// DEPRECATED - END
 
 /*
@@ -645,6 +653,188 @@ bool compareTrees(TTree* tree1, TTree* tree2, std::string selection1, std::strin
         }
 
         return true;
+}
+
+/*
+ * function to sort a TTree* with respect to given array of entry indices
+ * if sortedEntries[j] = k, then
+ * entry k of "inputTree" will appear at entry j of "outputTree"
+ *
+ * NOTE : initialize "outputTree" before function call via
+ * TTree* outputTree = inputTree->CloneTree(0);   // do not copy any entry yet
+ * otherwise will get :
+ * may be used uninitialized in this function [-Werror=maybe-uninitialized]
+ *
+ * If "lenEntries" is less than number of entries in "inputTree", then
+ * the function does not exit and sorts "lenEntries" number of entries.
+ * If "lenEntries" is greater than number of entries in "inputTree", then
+ * the function exits after initializing "outputTree".
+ * */
+void sortTree(TTree* inputTree, TTree* outputTree, Long64_t sortedEntries[], Long64_t lenEntries)
+{
+//    outputTree = inputTree->CloneTree(0);   // do not copy any entry yet
+    if (inputTree->GetEntries() < lenEntries)
+    {
+        std::cout << "mismatch of number of entries" <<std::endl;
+        std::cout << "lenEntries              = " << lenEntries <<std::endl;
+        std::cout << "inputTree->GetEntries() = " << inputTree->GetEntries() <<std::endl;
+    }
+    else{
+        // LOOP : sorting
+        for (Long64_t j = 0; j<lenEntries; ++j)
+        {
+            inputTree->GetEntry(sortedEntries[j]);
+            outputTree->Fill();
+        }
+        // LOOP : sorting - END
+    }
+}
+
+/*
+ * function to sort a TTree* with respect to given vector of entry indices
+ * if sortedEntries[j] = k, then
+ * entry k of "inputTree" will appear at entry j of "outputTree"
+ *
+ * NOTE : initialize "outputTree" before function call via
+ * TTree* outputTree = inputTree->CloneTree(0);   // do not copy any entry yet
+ * otherwise will get :
+ * may be used uninitialized in this function [-Werror=maybe-uninitialized]
+ *
+ * If length of "sortedEntries" is less than number of entries in "inputTree", then
+ * the function does not exit and sorts that number of entries.
+ * If length of "sortedEntries" is greater than number of entries in "inputTree", then
+ * the function exits after initializing "outputTree".
+ * */
+void sortTree(TTree* inputTree, TTree* outputTree, const std::vector<Long64_t>& sortedEntries)
+{
+//    outputTree = inputTree->CloneTree(0);   // do not copy any entry yet
+    Long64_t lenEntries = sortedEntries.size();
+    if (inputTree->GetEntries() < lenEntries)
+    {
+        std::cout << "mismatch of number of entries" <<std::endl;
+        std::cout << "sortedEntries.size()    = " << lenEntries <<std::endl;
+        std::cout << "inputTree->GetEntries() = " << inputTree->GetEntries() <<std::endl;
+    }
+    else
+    {
+        // LOOP : sorting
+        for (std::vector<Long64_t>::const_iterator it = sortedEntries.begin() ; it != sortedEntries.end(); ++it)
+        {
+            inputTree->GetEntry(*it);
+            outputTree->Fill();
+        }
+        // LOOP : sorting - END
+    }
+}
+
+/*
+ * function to sort a TTree* with respect to "branchName" by increasing order
+ * sorted entries should satisfy "selection"
+ * if decreasing = true, then sort order will be decreasing
+ *
+ * NOTE : initialize "outputTree" before function call via
+ * TTree* outputTree = inputTree->CloneTree(0);   // do not copy any entry yet
+ * otherwise will get :
+ * may be used uninitialized in this function [-Werror=maybe-uninitialized]
+ * */
+void sortTree(TTree* inputTree, TTree* outputTree, const char* branchName, const char* selection, bool decreasing)
+{
+    inputTree->Draw(Form("%s:Entry$", branchName), selection, "goff");  // "goff" = graphics off
+
+    Long64_t nentries = (Int_t)inputTree->GetSelectedRows();
+    // selected values of the branch, comparison is based on double values
+    std::vector<double> vecBranch  (inputTree->GetV1(), inputTree->GetV1()+nentries);
+    // indices of selected entries
+    std::vector<Long64_t> vecEntry (inputTree->GetV2(), inputTree->GetV2()+nentries);
+    std::vector<Long64_t> indices  (nentries);
+
+    // fill "indices"
+    std::size_t n(0);
+    std::generate(indices.begin(), indices.end(), [&]{ return n++; });
+
+    // sort indices which is a list from [0, nentries-1]
+    if (!decreasing)
+        std::sort(indices.begin(), indices.end(),
+                [&vecBranch](int i1, int i2) { return (double)vecBranch[i1] < (double)vecBranch[i2]; } );
+    else
+        std::sort(indices.begin(), indices.end(),
+                [&vecBranch](int i1, int i2) { return (double)vecBranch[i1] > (double)vecBranch[i2]; } );
+
+    // sort vecEntry using sorted "indices"
+    // LOOP : sorting
+    for (std::vector<Long64_t>::const_iterator it = indices.begin() ; it != indices.end(); ++it)
+    {
+        inputTree->GetEntry(vecEntry.at(*it));
+        outputTree->Fill();
+    }
+    // LOOP : sorting - END
+}
+
+/*
+ * function to sort a TTree* with respect to "branchName" by increasing order
+ * sorted entries should satisfy "selection"
+ * if decreasing = true, then sort order will be decreasing
+ *
+ * NOTE : initialize "outputTree" before function call via
+ * TTree* outputTree = inputTree->CloneTree(0);   // do not copy any entry yet
+ * otherwise will get :
+ * may be used uninitialized in this function [-Werror=maybe-uninitialized]
+ *
+ * uses TMath::Sort()
+ * https://root.cern.ch/root/roottalk/roottalk01/3646.html
+ * */
+void sortTreeTMath(TTree* inputTree, TTree* outputTree, const char* branchName, const char* selection, bool decreasing)
+{
+    inputTree->Draw(Form("%s:Entry$", branchName), selection, "goff");  // "goff" = graphics off
+
+    Long64_t nentries = (Int_t)inputTree->GetSelectedRows();
+    // indices of selected entries
+    std::vector<Long64_t> vecEntry (inputTree->GetV2(), inputTree->GetV2()+nentries);
+
+    // sort indices which is a list from [0, nentries-1]
+    Long64_t *indices = new Long64_t[nentries];
+    TMath::Sort(nentries,inputTree->GetV1(),indices, decreasing);
+
+    // sort vecEntry using sorted "indices"
+    // LOOP : sorting
+    for (Long64_t i=0;i<nentries;i++) {
+        inputTree->GetEntry(vecEntry.at(indices[i]));
+        outputTree->Fill();
+    }
+    // LOOP : sorting - END
+}
+
+/*
+ * function to sort a TTree* with respect to "branchName" by increasing order
+ * if decreasing = true, then sort order will be decreasing
+ *
+ * NOTE : initialize "outputTree" before function call via
+ * TTree* outputTree = inputTree->CloneTree(0);   // do not copy any entry yet
+ * otherwise will get :
+ * may be used uninitialized in this function [-Werror=maybe-uninitialized]
+ * */
+/// DEPRECATED
+void sortTree2(TTree* inputTree, TTree* outputTree, const char* branchName, bool decreasing)
+{
+    inputTree->BuildIndex(branchName);
+    TTreeIndex *index = (TTreeIndex*)inputTree->GetTreeIndex();
+//    Long64_t Nindex = index->GetN();
+    Long64_t Nindex = inputTree->GetEntries();
+
+    // LOOP : sorting
+    if (!decreasing){
+        for(Long64_t j = 0; j < Nindex; ++j) {
+            inputTree->GetEntry(index->GetIndex()[j]);
+            outputTree->Fill();
+        }
+    }
+    else {
+        for(Long64_t j = Nindex-1; j>=0; --j) {
+            inputTree->GetEntry(index->GetIndex()[j]);
+            outputTree->Fill();
+        }
+    }
+    // LOOP : sorting - END
 }
 
 TString mergeCuts(TString cut1, TString cut2)
