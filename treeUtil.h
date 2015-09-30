@@ -71,11 +71,11 @@ void drawMaximum(TTree* tree, TString formula, TString condition, TH1* hist, boo
     }
 
     if(plotZero) {
-        tree->Draw(Form("Max$(%s*(%s)) >> %s",formula.Data(), condition.Data(), hname));
+        tree->Draw(Form("Max$(%s*(%s)) >> %s",formula.Data(), condition.Data(), hname), "goff");
     }
     else {
         tree->Draw(Form("Max$(%s*(%s)) >> %s",formula.Data(), condition.Data(), hname), Form("%s == Max$(%s*(%s))",
-                                                                                        formula.Data(), formula.Data(), condition.Data()));
+                                                                                        formula.Data(), formula.Data(), condition.Data()), "goff");
 //        drawMaximumGeneral(tree, formula, formula, condition, hist);
     }
 }
@@ -100,12 +100,12 @@ void drawMaximum(TTree* tree, TString formula, TString condition, TString cut, T
     }
 
     if(plotZero){
-        tree->Draw(Form("Max$(%s*(%s)) >> %s",formula.Data(), condition.Data(), hname), cut.Data());
+        tree->Draw(Form("Max$(%s*(%s)) >> %s",formula.Data(), condition.Data(), hname), cut.Data(), "goff");
     }
     else {
         tree->Draw(Form("Max$(%s*(%s)) >> %s",formula.Data(), condition.Data(), hname), Form("%s == Max$(%s*(%s)) && %s",
                                                                                         formula.Data(), formula.Data(), condition.Data(),
-                                                                                        cut.Data()));
+                                                                                        cut.Data()), "goff");
 //        drawMaximumGeneral(tree, formula, formula, condition, cut, hist);
     }
 }
@@ -133,7 +133,7 @@ void drawMaximumGeneral(TTree* tree, TString formula, TString formulaForMax, TSt
     TEventList* elist = getMaximumEventList(tree, formulaForMax, conditionForMax);
     elist->SetReapplyCut(true); // among the elements in the event pick only the one that passes the selection
     tree->SetEventList(elist);
-    tree->Draw(Form("%s >> %s", formula.Data(), hname));
+    tree->Draw(Form("%s >> %s", formula.Data(), hname), "goff");
 
     tree->SetEventList(elist_original);   // restore the original event list after making the histogram
                                           // tree->SetEntryList(elist_original);  --> this approach does not work
@@ -164,7 +164,7 @@ void drawMaximumGeneral(TTree* tree, TString formula, TString formulaForMax, TSt
     TEventList* elist = getMaximumEventList(tree, formulaForMax, conditionForMax, cut);
     elist->SetReapplyCut(true); // among the elements in the event pick only the one that passes the selection
     tree->SetEventList(elist);
-    tree->Draw(Form("%s >> %s", formula.Data(), hname));
+    tree->Draw(Form("%s >> %s", formula.Data(), hname), "goff");
 
     tree->SetEventList(elist_original);   // restore the original event list after making the histogram
                                           // tree->SetEntryList(elist_original);  --> this approach does not work
@@ -189,7 +189,7 @@ void drawMaximum2nd(TTree* tree, TString formula, TString condition, TH1* hist, 
 
     if(plotZero) {
         tree->Draw(Form("Max$(%s*(%s < Max$(%s*(%s)))*(%s)) >> %s",formula.Data(),formula.Data(),formula.Data(),
-                                                                    condition.Data(), condition.Data(), hname));
+                                                                   condition.Data(), condition.Data(), hname), "goff");
     }
     else {
         drawMaximum2ndGeneral(tree, formula, formula, condition, hist);
@@ -216,7 +216,7 @@ void drawMaximum2nd(TTree* tree, TString formula, TString condition, TString cut
     if(plotZero) {
         tree->Draw(Form("Max$(%s*(%s < Max$(%s*(%s)))*(%s)) >> %s",formula.Data(),formula.Data(),formula.Data(),
                                                                     condition.Data(), condition.Data(), hname),
-                                                                    cut.Data());
+                                                                    cut.Data(), "goff");
     }
     else {
         drawMaximum2ndGeneral(tree, formula, formula, condition, cut, hist);
@@ -244,7 +244,7 @@ void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, 
     TEventList* elist = getMaximum2ndEventList(tree, formulaForMax, conditionForMax);
     elist->SetReapplyCut(true); // among the elements in the event pick only the one that passes the selection
     tree->SetEventList(elist);
-    tree->Draw(Form("%s >> %s", formula.Data(), hname));
+    tree->Draw(Form("%s >> %s", formula.Data(), hname), "goff");
 
     tree->SetEventList(elist_original);   // restore the original event list after making the histogram
                                           // tree->SetEntryList(elist_original);  --> this approach does not work
@@ -273,7 +273,7 @@ void drawMaximum2ndGeneral(TTree* tree, TString formula, TString formulaForMax, 
     TEventList* elist = getMaximum2ndEventList(tree, formulaForMax, conditionForMax, cut);
     elist->SetReapplyCut(true); // among the elements in the event pick only the one that passes the selection
     tree->SetEventList(elist);
-    tree->Draw(Form("%s >> %s", formula.Data(), hname));
+    tree->Draw(Form("%s >> %s", formula.Data(), hname), "goff");
 
     tree->SetEventList(elist_original);   // restore the original event list after making the histogram
                                           // tree->SetEntryList(elist_original);  --> this approach does not work
@@ -307,7 +307,7 @@ TEventList* getMaximumEventList(TTree* tree, TString formulaForMax, TString cond
 {
     const char* eventlist_name="eventlistMax";
 
-    tree->Draw(Form(">> %s", eventlist_name) ,Form("%s == Max$(%s*(%s)) && %s",formulaForMax.Data() ,formulaForMax.Data() ,conditionForMax.Data() ,cut.Data()));
+    tree->Draw(Form(">> %s", eventlist_name) ,Form("%s == Max$(%s*(%s)) && %s",formulaForMax.Data() ,formulaForMax.Data() ,conditionForMax.Data() ,cut.Data()), "goff");
 
     TEventList* eventlist = (TEventList*)gDirectory->Get(eventlist_name);
     return eventlist;
@@ -325,7 +325,7 @@ TEntryList* getMaximum2ndEntryList(TTree* tree, TString formulaForMax, TString c
     const char* entrylist_name="entrylistMax2nd";
 
     tree->Draw(Form(">> %s", entrylist_name) ,Form("%s == Max$(%s*(%s < Max$(%s*(%s)))*(%s)) && %s",formulaForMax.Data() ,formulaForMax.Data() ,formulaForMax.Data() ,formulaForMax.Data() ,
-                                                                                                              conditionForMax.Data() ,conditionForMax.Data() ,cut.Data()));
+                                                                                                              conditionForMax.Data() ,conditionForMax.Data() ,cut.Data()), "goff");
 
     TEntryList* entrylist = (TEntryList*)gDirectory->Get(entrylist_name);
     return entrylist;
@@ -342,7 +342,7 @@ TEventList* getMaximum2ndEventList(TTree* tree, TString formulaForMax, TString c
     const char* eventlist_name="eventlistMax2nd";
 
     tree->Draw(Form(">> %s", eventlist_name) ,Form("%s == Max$(%s*(%s < Max$(%s*(%s)))*(%s)) && %s",formulaForMax.Data() ,formulaForMax.Data() ,formulaForMax.Data() ,formulaForMax.Data() ,
-                                                                                                              conditionForMax.Data() ,conditionForMax.Data() ,cut.Data()));
+                                                                                                              conditionForMax.Data() ,conditionForMax.Data() ,cut.Data()), "goff");
 
     TEventList* eventlist = (TEventList*)gDirectory->Get(eventlist_name);
     return eventlist;
@@ -602,8 +602,8 @@ bool compareTrees(TTree* tree1, TTree* tree2, std::string selection1, std::strin
 
         for(int i=0; i<len; ++i)
         {
-            tree1->Draw(Form("%s", branches[i]), selection1.c_str());
-            tree2->Draw(Form("%s", branches[i]), selection2.c_str());
+            tree1->Draw(Form("%s", branches[i]), selection1.c_str(), "goff");
+            tree2->Draw(Form("%s", branches[i]), selection2.c_str(), "goff");
 
             Long64_t selected1 = tree1->GetSelectedRows();
             Long64_t selected2 = tree2->GetSelectedRows();
