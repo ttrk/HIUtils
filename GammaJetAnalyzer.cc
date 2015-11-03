@@ -337,13 +337,15 @@ void GammaJetAnalyzer::drawPhotonJet(TString formula, TString cond_photon, TStri
  * selection = object (photon, jet, ...) selection applied in the drawing step. Do not merge selection for different objects into "selection",
  * because this will take the binary "AND" of these different selections.
  * Example : selection = cond_photon && cond_jet
- * Say normally photons at indices 1, 3 pass "cond_photon" and jets at indices 0, 2 "pass cond_jet".
+ * Say normally photons at indices 1, 3 pass "cond_photon" and jets at indices 0, 2 pass "cond_jet".
  * In that case no photon or jet passes "selection".
  * "selection" must contain selections for at most one object
  * and should better be used for selection of a "list", not a single object.
  */
 void GammaJetAnalyzer::drawPhotonJet(TString formula, TString cond_photon, TString cond_jet, TString selection, TString cut, TString histName)
 {
+    setAliases(cond_photon, cond_jet);
+
     const char* eventlist_name="eventlistPhotonJet";
     tree->Draw(Form(">> %s", eventlist_name), Form("Max$(%s)>0 && Max$(%s)>0 && %s",cond_photon.Data() ,cond_jet.Data() ,cut.Data()));
     // why use "Max$(%s)>0" instead of "%s"
@@ -351,7 +353,6 @@ void GammaJetAnalyzer::drawPhotonJet(TString formula, TString cond_photon, TStri
     TEventList* elist = (TEventList*)gDirectory->Get(eventlist_name);
     tree->SetEventList(elist);
 
-    setAliases(cond_photon, cond_jet);
     tree->Draw(Form("%s >> %s", formula.Data(), histName.Data()), selection.Data());
 
     tree->SetEventList(eventlist);      // restore the original event list after making the histogram
@@ -364,6 +365,18 @@ TString GammaJetAnalyzer::constructFormula_dR(TString eta1, TString phi1, TStrin
     TString dphi = Form("(abs(%s-%s) + (abs(%s-%s) > 3.141592653589)*(-6.283185307178))", phi1.Data(), phi2.Data(), phi1.Data(), phi2.Data());
     TString deta = Form("(%s-%s)",eta1.Data(), eta2.Data());
     return Form("sqrt((%s)^2 + (%s)^2)", dphi.Data(), deta.Data());
+}
+
+// construct formula for a specific deltaPhi (photon, jet)
+TString GammaJetAnalyzer::constructFormula_dphi(TString phi1, TString phi2)
+{
+    return  Form("abs((abs(%s-%s) + (abs(%s-%s) > 3.141592653589)*(-6.283185307178)))", phi1.Data(), phi2.Data(), phi1.Data(), phi2.Data());
+}
+
+// construct formula for a specific deltaEta (photon, jet)
+TString GammaJetAnalyzer::constructFormula_deta(TString eta1, TString eta2)
+{
+    return Form("abs((%s-%s))",eta1.Data(), eta2.Data());
 }
 
 // no need to use "static" keyword in function definition after it has been used in function declaration

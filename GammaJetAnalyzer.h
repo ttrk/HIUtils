@@ -137,6 +137,8 @@ public:
     void drawPhotonJet(TString formula, TString cond_photon = "1", TString cond_jet = "1", TString selection = "1", TString cut = "1", TString histName = "h_drawPhotonJet");
     // construct strings
     TString constructFormula_dR(TString eta1 = alias_maxphoton_eta, TString phi1 = alias_maxphoton_phi, TString eta2 = alias_maxjet_eta, TString phi2 = alias_maxjet_phi);
+    TString constructFormula_dphi(TString phi1 = alias_maxphoton_phi, TString phi2 = alias_maxjet_phi);
+    TString constructFormula_deta(TString eta1 = alias_maxphoton_eta, TString eta2 = alias_maxjet_eta);
     // merge cuts
     static TString mergeSelections(TString sel1, TString sel2);
 
