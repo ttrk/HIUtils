@@ -17,6 +17,7 @@
 #include <cstdarg>       // for functions which take a variable number of arguments.
 #include <iostream>      // std::cout
 #include <algorithm>     // std::sort, std::generate
+#include <vector>
 
 void drawMaximumGeneral   (TTree* tree, TString formula, TString formulaForMax, TString conditionForMax = "1", TH1* hist = NULL);
 void drawMaximumGeneral   (TTree* tree, TString formula, TString formulaForMax, TString conditionForMax = "1", TString cut = "1", TH1* hist = NULL);
@@ -39,6 +40,8 @@ void sortTree(TTree* inputTree, TTree* outputTree, Long64_t sortedEntries[], Lon
 void sortTree(TTree* inputTree, TTree* outputTree, const std::vector<Long64_t>& sortedEntries);
 void sortTree     (TTree* inputTree, TTree* outputTree, const char* branchName, const char* selection = "1", bool decreasing = false);
 void sortTreeTMath(TTree* inputTree, TTree* outputTree, const char* branchName, const char* selection = "1", bool decreasing = false);
+
+Long64_t getMatchingEntry(TTree* tree, const char* selection);
 
 TString mergeCuts(TString cut1, TString cut2);
 TString mergeCuts2(int nCuts, ...);
@@ -835,6 +838,27 @@ void sortTree2(TTree* inputTree, TTree* outputTree, const char* branchName, bool
         }
     }
     // LOOP : sorting - END
+}
+
+/*
+ * return the index of the entry corresponding to "selection"
+ * assumes that there is exactly one entry satisfying the "selection"
+ *
+ * primary purpose is to match events between different trees
+ * Ex. selection = Form("run == %d && event == %d && lumis == %d", run, event, lumis);
+ * */
+Long64_t getMatchingEntry(TTree* tree, const char* selection)
+{
+    tree->Draw("Entry$",selection,"goff");
+    int selectedRows = tree->GetSelectedRows();
+    if (selectedRows != 1)
+    {
+        // mismatched event selection
+        return -1;
+    }
+    else {
+        return (Long64_t)tree->GetV1()[0];
+    }
 }
 
 TString mergeCuts(TString cut1, TString cut2)
