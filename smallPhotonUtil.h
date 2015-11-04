@@ -15,6 +15,9 @@
 Double_t getDR(Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2);
 Double_t getDPHI(Double_t phi1, Double_t phi2);
 Double_t getDETA(Double_t eta1, Double_t eta2);
+bool matchParticlePair(Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2, double thresholdDeltaR = 0.2);
+bool matchParticlePair(Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2, Double_t pt1, Double_t  pt2,
+                       double thresholdDeltaR = 0.2, double thresholdDeltapT = 5);
 std::vector<int> matchGEN2RECO(const std::vector<float>* genPt,  const std::vector<float>* genEta, const std::vector<float>* genPhi,
                    const std::vector<float>* recoPt, const std::vector<float>* recoEta,const std::vector<float>* recoPhi,
                    const std::vector<bool>&   genValid, const std::vector<bool>&  recoValid,
@@ -62,6 +65,23 @@ Double_t getDPHI( Double_t phi1, Double_t phi2) {
 
 Double_t getDETA(Double_t eta1, Double_t eta2){
 	return eta1 - eta2;
+}
+
+/*
+ * match a pair of particles based on deltaR
+ * */
+bool matchParticlePair(Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2, double thresholdDeltaR)
+{
+    return (getDR(eta1, phi1, eta2, phi2) < thresholdDeltaR);
+}
+
+/*
+ * match a pair of particles based on deltaR and deltapT
+ * */
+bool matchParticlePair(Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2, Double_t pt1, Double_t  pt2,
+                       double thresholdDeltaR, double thresholdDeltapT)
+{
+    return ((getDR(eta1, phi1, eta2, phi2) < thresholdDeltaR) && (TMath::Abs(pt1-pt2) < thresholdDeltapT));
 }
 
 /*
