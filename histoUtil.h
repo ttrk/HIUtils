@@ -16,6 +16,7 @@
 #include <TSystem.h>
 #include <TGraph.h>
 #include <TH2D.h>
+#include <TPaveStats.h>
 #include <TGraphAsymmErrors.h>
 
 #include <iostream>
@@ -43,6 +44,7 @@ void     saveAllHistogramsToPicture(TDirectoryFile* dir, const char* fileType="g
 void     saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType="gif", const char* directoryToBeSavedIn="", int styleIndex=0);
 void     saveAllGraphsToPicture(TDirectoryFile* dir, const char* fileType="gif", int dirType=0                      , int styleIndex=0);
 void     saveAllCanvasesToPicture(TList* canvases      , const char* fileType="gif", const char* directoryToBeSavedIn="");
+TCanvas* drawSame(TH1D* h1, TH1D* h2);
 TList*   drawSame(TList* histos1, TList* histos2);
 TList*   draw2D(TList* histos);
 TH1*     Graph2Histogram(TGraphAsymmErrors graph);
@@ -651,6 +653,54 @@ void saveAllCanvasesToPicture(TList* canvases, const char* fileType /* ="gif" */
 }
 
 /*
+ * plot the histograms h1 and h2 onto the same TCanvas.
+ */
+TCanvas* drawSame(TH1D* h1, TH1D* h2)
+{
+    TCanvas* c;
+
+    // default plotting options
+    h1->SetMarkerStyle(kFullSquare);
+    h2->SetMarkerStyle(kFullCircle);
+
+    h1->SetMarkerColor(kBlack);
+    h2->SetMarkerColor(kRed);
+
+    h2->SetMarkerSize(h1->GetMarkerSize()*0.8);     // to distinguish between points when they overlap
+
+    c=new TCanvas(h1->GetName());
+
+    h1->Draw("e");
+    h2->Draw("e SAMEs");    // "SAMEs" is for statistics box
+    // https://root.cern.ch/doc/master/classTHistPainter.html#HP07
+
+    // https://root.cern.ch/root/roottalk/roottalk02/2843.html
+    gPad->Update();
+    TPaveStats *ps2 = (TPaveStats*)h2->GetListOfFunctions()->FindObject("stats");
+    double Y1NDC_old = ps2->GetY1NDC();
+    double Y2NDC_old = ps2->GetY2NDC();
+    ps2->SetY1NDC(Y1NDC_old-(Y2NDC_old-Y1NDC_old));     // put the box right below the original one.
+    ps2->SetY2NDC(Y1NDC_old);
+    ps2->SetTextColor(kRed);
+
+    // set Y-axis ranges
+    // default Y-axis range is that of h1
+    // make sure that both plots will not run out of y-axis
+    double max1 = h1->GetMaximum();
+    double max2 = h2->GetMaximum();
+    double min1 = h1->GetMinimum();
+    double min2 = h2->GetMinimum();
+
+    if (max2 > max1)
+        h1->SetMaximum(max2+TMath::Abs(max2)*0.2);
+
+    if (min2 < min1)
+        h1->SetMinimum(min2-TMath::Abs(min2)*0.2);
+
+    return c;
+}
+
+/*
  * for all histograms in "histos1" and "histos2", plot the histograms with the same indices onto the same TCanvas.
  */
 TList* drawSame(TList* histos1, TList* histos2)
@@ -665,38 +715,7 @@ TList* drawSame(TList* histos1, TList* histos2)
     while((h1=(TH1D*)iter1->Next())) {
         h2=(TH1D*)iter2->Next();
 
-        // default plotting options
-        h1->SetMarkerStyle(kFullSquare);
-        h2->SetMarkerStyle(kFullCircle);
-
-        h1->SetMarkerColor(kBlack);
-        h2->SetMarkerColor(kRed);
-
-        h2->SetMarkerSize(h1->GetMarkerSize()*0.8);     // to distinguish between points when they overlap
-
-        c=new TCanvas(h1->GetName());
-        c->Clear();     // clear changes coming from the previous canvas
-
-        h1->Draw("e");
-        h2->Draw("e SAME");
-
-        // set Y-axis ranges
-        // default Y-axis range is that of h1
-        // make sure that both plots will not run out of y-axis
-        double max1 = h1->GetMaximum();
-        double max2 = h2->GetMaximum();
-        double min1 = h1->GetMinimum();
-        double min2 = h2->GetMinimum();
-
-        if (max2 > max1)
-            h1->SetMaximum(max2+TMath::Abs(max2)*0.2);
-
-        if (min2 < min1)
-            h1->SetMinimum(min2-TMath::Abs(min2)*0.2);
-
-        // special cases
-        // TO DO
-
+        c = drawSame(h1, h2);
         canvasList->Add(c);
     }
 
