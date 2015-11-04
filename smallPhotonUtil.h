@@ -21,6 +21,16 @@ bool matchParticlePair(Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi
 std::vector<int> matchGEN2RECO(const std::vector<float>* genPt,  const std::vector<float>* genEta, const std::vector<float>* genPhi,
                    const std::vector<float>* recoPt, const std::vector<float>* recoEta,const std::vector<float>* recoPhi,
                    const std::vector<bool>&   genValid, const std::vector<bool>&  recoValid,
+                   double thresholdDeltaR, double thresholdDeltapT,
+                   int* nGENinsideDeltaR);
+std::vector<int> matchGEN2RECOVerbose(const std::vector<float>* genPt,  const std::vector<float>* genEta, const std::vector<float>* genPhi,
+                   const std::vector<float>* recoPt, const std::vector<float>* recoEta,const std::vector<float>* recoPhi,
+                   const std::vector<bool>&   genValid, const std::vector<bool>&  recoValid,
+                   double thresholdDeltaR, double thresholdDeltapT,
+                   int* nGENinsideDeltaR);
+std::vector<int> matchGEN2RECO(const std::vector<float>* genPt,  const std::vector<float>* genEta, const std::vector<float>* genPhi,
+                   const std::vector<float>* recoPt, const std::vector<float>* recoEta,const std::vector<float>* recoPhi,
+                   const std::vector<bool>&   genValid, const std::vector<bool>&  recoValid,
                    double thresholdDeltaR);
 std::vector<int> matchGEN2RECO(const std::vector<float>* genPt,  const std::vector<float>* genEta, const std::vector<float>* genPhi,
                    const std::vector<float>* recoPt, const std::vector<float>* recoEta,const std::vector<float>* recoPhi,
@@ -85,26 +95,11 @@ bool matchParticlePair(Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi
 }
 
 /*
- * result is in vector "matched"
- * matched.at(i) = j;            GEN particle at index i matches RECO particle at index j
- * */
-std::vector<int> matchGEN2RECO(const std::vector<float>* genPt,  const std::vector<float>* genEta, const std::vector<float>* genPhi,
-                   const std::vector<float>* recoPt, const std::vector<float>* recoEta,const std::vector<float>* recoPhi,
-                   const std::vector<bool>& genValid, const std::vector<bool>& recoValid,
-                   double thresholdDeltaR)
-{
-   return matchGEN2RECO(genPt,  genEta,  genPhi,
-                  recoPt, recoEta, recoPhi,
-                  genValid, recoValid,
-                  thresholdDeltaR,
-                  NULL);
-}
-
-/*
  *
   function to match GEN particles to RECO particles. The matching is based on deltaR(GEN, RECO) and deltapT(GEN, RECO).
   Algorithm :
-    1. For each GEN particle, a list of RECO particles which have deltaR(GEN, RECO) < "thresholdDeltaR" are marked as a possible match.
+    1. For each GEN particle, a list of RECO particles which have deltaR(GEN, RECO) < "thresholdDeltaR"
+        and deltapT(GEN, RECO) < "thresholdDeltapT" are marked as a possible match.
     2. From its possible match list, each GEN particle tries to match the RECO particle for which deltaR(GEN, RECO) is minimum.
     3. If there are more than one GEN particles which try to match the same RECO particle,
       then amongs these GEN candidates the one which has the minimum deltapT(GEN, RECO) will match the RECO particle.
@@ -119,7 +114,7 @@ std::vector<int> matchGEN2RECO(const std::vector<float>* genPt,  const std::vect
 std::vector<int> matchGEN2RECO(const std::vector<float>* genPt,  const std::vector<float>* genEta, const std::vector<float>* genPhi,
                    const std::vector<float>* recoPt, const std::vector<float>* recoEta,const std::vector<float>* recoPhi,
                    const std::vector<bool>&   genValid, const std::vector<bool>&  recoValid,
-                   double thresholdDeltaR,
+                   double thresholdDeltaR, double thresholdDeltapT,
                    int* nGENinsideDeltaR)
 {
     int nGEN  = genPt->size();
@@ -150,11 +145,12 @@ std::vector<int> matchGEN2RECO(const std::vector<float>* genPt,  const std::vect
         {
             if (!recoValid.at(j)) continue;
 
-            double deltaRtmp  = getDR(genEta->at(i), genPhi->at(i), recoEta->at(j), recoPhi->at(j));
-            double deltapTtmp = TMath::Abs(genPt->at(i)-recoPt->at(j));
-            bool passedDeltaR = (deltaRtmp < thresholdDeltaR);
+            double deltaRtmp   = getDR(genEta->at(i), genPhi->at(i), recoEta->at(j), recoPhi->at(j));
+            double deltapTtmp  = TMath::Abs(genPt->at(i)-recoPt->at(j));
+            bool passedDeltaR  = (deltaRtmp  < thresholdDeltaR);
+            bool passedDeltapT = (deltapTtmp < thresholdDeltapT);
 
-            if(passedDeltaR)
+            if(passedDeltaR && passedDeltapT)
             {
                 if (nGENinsideDeltaR != NULL)  nGENinsideDeltaR[j]++;
 
@@ -264,7 +260,7 @@ std::vector<int> matchGEN2RECO(const std::vector<float>* genPt,  const std::vect
 std::vector<int> matchGEN2RECOVerbose(const std::vector<float>* genPt,  const std::vector<float>* genEta, const std::vector<float>* genPhi,
                    const std::vector<float>* recoPt, const std::vector<float>* recoEta,const std::vector<float>* recoPhi,
                    const std::vector<bool>&   genValid, const std::vector<bool>&  recoValid,
-                   double thresholdDeltaR,
+                   double thresholdDeltaR, double thresholdDeltapT,
                    int* nGENinsideDeltaR)
 {
     int nGEN  = genPt->size();
@@ -301,11 +297,12 @@ std::vector<int> matchGEN2RECOVerbose(const std::vector<float>* genPt,  const st
         {
             if (!recoValid.at(j)) continue;
 
-            double deltaRtmp  = getDR(genEta->at(i), genPhi->at(i), recoEta->at(j), recoPhi->at(j));
-            double deltapTtmp = TMath::Abs(genPt->at(i)-recoPt->at(j));
-            bool passedDeltaR = (deltaRtmp < thresholdDeltaR);
+            double deltaRtmp   = getDR(genEta->at(i), genPhi->at(i), recoEta->at(j), recoPhi->at(j));
+            double deltapTtmp  = TMath::Abs(genPt->at(i)-recoPt->at(j));
+            bool passedDeltaR  = (deltaRtmp  < thresholdDeltaR);
+            bool passedDeltapT = (deltapTtmp < thresholdDeltapT);
 
-            if(passedDeltaR)
+            if(passedDeltaR && passedDeltapT)
             {
                 if (nGENinsideDeltaR != NULL)  nGENinsideDeltaR[j]++;
 
@@ -437,6 +434,75 @@ std::vector<int> matchGEN2RECOVerbose(const std::vector<float>* genPt,  const st
     }
 
     return matched;
+}
+
+/*
+ * result is in vector "matched"
+ * matched.at(i) = j;            GEN particle at index i matches RECO particle at index j
+ * */
+std::vector<int> matchGEN2RECO(const std::vector<float>* genPt,  const std::vector<float>* genEta, const std::vector<float>* genPhi,
+                   const std::vector<float>* recoPt, const std::vector<float>* recoEta,const std::vector<float>* recoPhi,
+                   const std::vector<bool>& genValid, const std::vector<bool>& recoValid,
+                   double thresholdDeltaR)
+{
+   return matchGEN2RECO(genPt,  genEta,  genPhi,
+                  recoPt, recoEta, recoPhi,
+                  genValid, recoValid,
+                  thresholdDeltaR,
+                  NULL);
+}
+
+/*
+ *
+  function to match GEN particles to RECO particles. The matching is based on deltaR(GEN, RECO) and deltapT(GEN, RECO).
+  Algorithm :
+    1. For each GEN particle, a list of RECO particles which have deltaR(GEN, RECO) < "thresholdDeltaR" are marked as a possible match.
+    2. From its possible match list, each GEN particle tries to match the RECO particle for which deltaR(GEN, RECO) is minimum.
+    3. If there are more than one GEN particles which try to match the same RECO particle,
+      then amongs these GEN candidates the one which has the minimum deltapT(GEN, RECO) will match the RECO particle.
+      Remaining GEN particles will try to match the RECO particle with which they have their next minimum deltaR(GEN, RECO).
+    4. Algorithm continues until each RECO particle has at most one GEN candidate.
+ *
+ * result is in vector "matched"
+ * matched.at(i) = j;            GEN particle at index i matches RECO particle at index j
+ * nGENinsideDeltaR[i] = n;      there are "n" GEN particles which have deltaR < "thresholdDeltaR"
+ *                               with RECO particle at index i
+ * */
+std::vector<int> matchGEN2RECO(const std::vector<float>* genPt,  const std::vector<float>* genEta, const std::vector<float>* genPhi,
+                   const std::vector<float>* recoPt, const std::vector<float>* recoEta,const std::vector<float>* recoPhi,
+                   const std::vector<bool>&   genValid, const std::vector<bool>&  recoValid,
+                   double thresholdDeltaR,
+                   int* nGENinsideDeltaR)
+{
+    // run the function using a very large threshold value for deltapT.
+    return matchGEN2RECO(genPt,  genEta,  genPhi,
+                   recoPt, recoEta, recoPhi,
+                   genValid, recoValid,
+                   thresholdDeltaR, 999999,
+                   nGENinsideDeltaR);
+}
+
+/*
+ * result is in vector "matched"
+ * matched.at(i) = j;            GEN particle at index i matches RECO particle at index j
+ * nGENinsideDeltaR[i] = n;      there are "n" GEN particles which have deltaR < "thresholdDeltaR"
+ *                               with RECO particle at index i
+ *
+ * runs the function matchGEN2RECO() with verbose mode
+ * to keep track of the steps in the algorithm
+ * */
+std::vector<int> matchGEN2RECOVerbose(const std::vector<float>* genPt,  const std::vector<float>* genEta, const std::vector<float>* genPhi,
+                   const std::vector<float>* recoPt, const std::vector<float>* recoEta,const std::vector<float>* recoPhi,
+                   const std::vector<bool>&   genValid, const std::vector<bool>&  recoValid,
+                   double thresholdDeltaR,
+                   int* nGENinsideDeltaR)
+{
+    // run the function using a very large threshold value for deltapT.
+    return matchGEN2RECOVerbose(genPt,  genEta,  genPhi,
+                   recoPt, recoEta, recoPhi,
+                   genValid, recoValid,
+                   thresholdDeltaR, 999999,
+                   nGENinsideDeltaR);
 }
 
 #endif /* SMALLPHOTONUTIL_H_ */
