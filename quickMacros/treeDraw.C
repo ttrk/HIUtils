@@ -20,6 +20,8 @@ void treeDraw()
 {
     ///// enter input /////
     const char* inputFilePath = "HiForest.root";
+    TFile* inputFile = new TFile(inputFilePath,"READ");
+
     const char* treePath = "ggHiNtuplizer/EventTree";
     const int numFriends = 3;
     const char* treeFriendList[numFriends] = {"akPu3PFJetAnalyzer/t", "hltanalysis/HltTree", "skimanalysis/HltTree"};
@@ -34,12 +36,24 @@ void treeDraw()
     double xLow = 0;
     double xUp  = 100;
 
+    // initialize histograms, graphs etc.
+    // NOTE : this step must be done after the input file is opened.
+    TH1::SetDefaultSumw2();
+
+    TH1D* h = new TH1D(hName.c_str() , hTitle.c_str() ,nBins ,xLow ,xUp);
+    h->SetMarkerStyle(kFullCircle);
+    h->SetMarkerColor(kBlack);
+
     // input for TCanvas
     std::string cnvName  = "cnv";
     std::string cnvTitle = "";
-    ///// enter input - END /////
 
-    TFile* inputFile = new TFile(inputFilePath,"READ");
+    TCanvas* c = new TCanvas(cnvName.c_str() , cnvTitle.c_str() ,600 ,600 );
+    ///// enter input - END /////
+    ///// verbose /////
+    std::cout << "inputFile = " << inputFilePath << std::endl;
+    std::cout << "treePath  = " << treePath      << std::endl;
+    ///// verbose - END/////
     TTree* tree = (TTree*)inputFile->Get(treePath);
     TTree* treeFriends[numFriends];
     for (int i=0; i<numFriends; ++i)
@@ -49,15 +63,6 @@ void treeDraw()
         std::cout<<"added as friend : "<<treeFriendList[i]<<std::endl;
     }
 
-    // initialize histograms, graphs etc.
-    // NOTE : this step must be done after the input file is opened.
-    TH1::SetDefaultSumw2();
-
-    TH1D* h = new TH1D(hName.c_str() , hTitle.c_str() ,nBins ,xLow ,xUp);
-    h->SetMarkerStyle(kFullCircle);
-    h->SetMarkerColor(kBlack);
-
-    TCanvas* c = new TCanvas(cnvName.c_str() , cnvTitle.c_str() ,600 ,600 );
     // drawing
     c->cd();
     tree->Draw(Form("%s>>%s", formula.c_str(), h->GetName()),selection.GetTitle(),"goff");
